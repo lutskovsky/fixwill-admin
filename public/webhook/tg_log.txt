@@ -1,0 +1,2 @@
+2024-07-24 16:14:55 - {"update_id":312814799,
+"message":{"message_id":2,"from":{"id":255521696,"is_bot":false,"first_name":"Sergey","last_name":"Lutskovsky","username":"lutskovsky","language_code":"ru"},"chat":{"id":255521696,"first_name":"Sergey","last_name":"Lutskovsky","username":"lutskovsky","type":"private"},"date":1721837696,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
