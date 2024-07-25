@@ -25,7 +25,10 @@ class EmployeeRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|string|max:255|unique:employees,name',
+            'internal_phone' => 'sometimes|nullable|integer|max:255|unique:employees,internal_phone',
+            'remonline_login' => 'sometimes|nullable|string|max:255|unique:employees,remonline_login',
+            'tg_login' => 'sometimes|nullable|string|max:255|unique:employees,tg_login',
         ];
     }
 

@@ -28,7 +28,7 @@ class EmployeeCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\Employee::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/employee');
-        CRUD::setEntityNameStrings('Сотрудник', 'Сотрудники');
+        CRUD::setEntityNameStrings('сотрудник', 'сотрудники');
 
         CRUD::column([
             'name'  => 'name',
@@ -74,6 +74,7 @@ class EmployeeCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(EmployeeRequest::class);
+
         CRUD::field('name')->label('Имя');
         CRUD::field('internal_phone')->label('Внутренний номер');
         CRUD::field('remonline_login')->label('Логин в Ремонлайне');
