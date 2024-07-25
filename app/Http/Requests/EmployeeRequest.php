@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Employee;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EmployeeRequest extends FormRequest
 {
@@ -25,10 +27,25 @@ class EmployeeRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255|unique:employees,name',
-            'internal_phone' => 'sometimes|nullable|integer|unique:employees,internal_phone',
-            'remonline_login' => 'sometimes|nullable|string|max:255|unique:employees,remonline_login',
-            'tg_login' => 'sometimes|nullable|string|max:255|unique:employees,tg_login',
+            'name' => [
+                'required', 'string', 'max:250',
+                Rule::unique(Employee::class, 'name')->ignore($this->id)
+            ],
+
+            'internal_phone' => [
+                'sometimes', 'nullable', 'string', 'max:255',
+                Rule::unique(Employee::class, 'internal_phone')->ignore($this->id)
+            ],
+
+            'remonline_login' => [
+                'sometimes', 'nullable', 'string', 'max:255',
+                Rule::unique(Employee::class, 'remonline_login')->ignore($this->id)
+            ] ,
+
+            'tg_login'=> [
+                'sometimes', 'nullable', 'string', 'max:255',
+                Rule::unique(Employee::class, 'tg_login')->ignore($this->id)
+            ],
         ];
     }
 
