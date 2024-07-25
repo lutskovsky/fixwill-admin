@@ -38,13 +38,14 @@ class TelegramController extends Controller
             'resize_keyboard' => true,
         ];
 
-        $this->sendMessage($chatId, 'Пожалуйста, сообщите ваш номер телефона, нажав на кнопку.', $replyMarkup);
+        $this->sendMessage($chatId, 'Пожалуйста, нажмите на кнопку "Поделиться номером".', $replyMarkup);
 
         return response('OK', 200);
     }
 
     protected function processPhoneNumber($phoneNumber, $chatId)
     {
+        $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
         $employee = Employee::where('tg_login', $phoneNumber)->first();
 
         if ($employee) {
