@@ -44,7 +44,7 @@ class EmployeeCrudController extends CrudController
         ]);
         CRUD::column([
             'name'  => 'tg_login',
-            'label' => 'Логин в Телеграме',
+            'label' => 'Номер телефона аккаунта Telegram',
         ]);
     }
 
@@ -78,7 +78,7 @@ class EmployeeCrudController extends CrudController
         CRUD::field('name')->label('Имя');
         CRUD::field('internal_phone')->label('Внутренний номер');
         CRUD::field('remonline_login')->label('Логин в Ремонлайне');
-        CRUD::field('tg_login')->label('Логин в Телеграме');
+        CRUD::field('tg_login')->label('Номер телефона аккаунта Telegram');
 
         /**
          * Fields can be defined using the fluent syntax:

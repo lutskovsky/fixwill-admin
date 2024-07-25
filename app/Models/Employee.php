@@ -53,4 +53,9 @@ class Employee extends Model
     | MUTATORS
     |--------------------------------------------------------------------------
     */
+
+    public function setTgLoginAttribute($value)
+    {
+        $this->attributes['tg_login'] = preg_replace('/\D/', '', $value);
+    }
 }
