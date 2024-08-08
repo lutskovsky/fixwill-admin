@@ -51,8 +51,10 @@ class EmployeeCallController extends Controller
             return response('Employee not found', 404);
         }
 
-        $contactPhoneNumber = $this->decrypt($contactPhoneNumber);
-
+        // If the phone number was encrypted by MITM proxy
+        if (preg_match('/[A-Za-z0-9+\/]{43}=/', $contactPhoneNumber)) {
+            $contactPhoneNumber = $this->decrypt(substr($contactPhoneNumber, -44));
+        }
 
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new \GuzzleHttp\Client());
 
