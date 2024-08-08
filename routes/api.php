@@ -10,9 +10,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('webhook')->group(function () {
-
     Route::post('telegram', [TelegramController::class, 'handle']);
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
-
-
 });
+
+Route::post('employee-call', [\App\Http\Controllers\EmployeeCallController::class, 'handle']);

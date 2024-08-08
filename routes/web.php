@@ -6,4 +6,3 @@ use App\Http\Controllers\ComagicWebhookController;
 
 Route::redirect('/', '/admin');
 
-Route::post('/telegram/webhook', [TelegramController::class, 'handle']);
