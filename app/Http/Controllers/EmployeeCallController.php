@@ -47,12 +47,10 @@ class EmployeeCallController extends Controller
         }
 
         $extension = $employee->internal_phone;
-        if (!$employee) {
-            return response('Employee not found', 404);
-        }
+        $virtualNumber = $employee->virtual_number;
 
         // If the phone number was encrypted by MITM proxy
-        if (preg_match('/[A-Za-z0-9+\/]{43}=/', $contactPhoneNumber)) {
+        if (preg_match('/[A-Za-z0-9+\/]{43,}=/', $contactPhoneNumber)) {
             $contactPhoneNumber = $this->decrypt(substr($contactPhoneNumber, -44));
         }
 
@@ -70,7 +68,7 @@ class EmployeeCallController extends Controller
 
         $callParams = [
             'first_call' => 'employee',
-            'virtual_phone_number' => '74954893455',
+            'virtual_phone_number' => ($virtualNumber ?? '74954893455'),
             'contact' => $contactPhoneNumber,
             'employee' => [
                 'id' => $id
