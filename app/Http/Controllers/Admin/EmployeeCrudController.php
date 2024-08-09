@@ -46,6 +46,10 @@ class EmployeeCrudController extends CrudController
             'name'  => 'tg_login',
             'label' => 'Номер телефона аккаунта Telegram',
         ]);
+        CRUD::column([
+            'name'  => 'virtual_number',
+            'label' => 'Виртуальный номер для исходящих',
+        ]);
     }
 
     /**
@@ -77,6 +81,7 @@ class EmployeeCrudController extends CrudController
 
         CRUD::field('name')->label('Имя');
         CRUD::field('internal_phone')->label('Внутренний номер');
+        CRUD::field('virtual_number')->label('Виртуальный номер для исходящих');
         CRUD::field('remonline_login')->label('Логин в Ремонлайне');
         CRUD::field('tg_login')->label('Номер телефона аккаунта Telegram');
 

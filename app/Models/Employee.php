@@ -56,6 +56,20 @@ class Employee extends Model
 
     public function setTgLoginAttribute($value)
     {
-        $this->attributes['tg_login'] = preg_replace('/\D/', '', $value);
+        $this->attributes['tg_login'] = $this->sanitizePhone($value);
+    }
+
+    public function setVirtualNumberAttribute($value)
+    {
+        $this->attributes['virtual_number'] = $this->sanitizePhone($value);
+    }
+
+    /**
+     * @param $value
+     * @return array|string|string[]|null
+     */
+    protected function sanitizePhone($value): string|array|null
+    {
+        return preg_replace('/\D/', '', $value);
     }
 }
