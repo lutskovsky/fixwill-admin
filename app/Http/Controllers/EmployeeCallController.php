@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use Fixwill\ComagicClient;
+use Illuminate\Support\Facades\Log;
 
 class EmployeeCallController extends Controller
 {
@@ -75,7 +76,7 @@ class EmployeeCallController extends Controller
             ]
         ];
         $call = $client->call('call', 'start.employee_call', $callParams);
-
+        Log::channel('comagic')->info(print_r($call));
         return response('OK', 200);
     }
 }

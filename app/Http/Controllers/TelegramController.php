@@ -10,7 +10,6 @@ class TelegramController extends Controller
 {
     public function handle(Request $request)
     {
-        Log::channel('telegram')->info('Telegram Webhook Request:', $request->all());
         $data = $request->all();
 
         if (isset($data['message']['text'])) {
@@ -75,11 +74,6 @@ class TelegramController extends Controller
         }
 
         $response = \Http::post($url, $data);
-
-
-        if (!$response->successful()) {
-            Log::error('Failed to send message to chat: ' . $response->body());
-        }
 
         return $response->successful();
     }
