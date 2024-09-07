@@ -52,7 +52,7 @@ class EmployeeCallController extends Controller
 
         // If the phone number was encrypted by MITM proxy
         if (preg_match('@^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$@', $contactPhoneNumber)) {
-            $contactPhoneNumber = $this->decrypt(substr($contactPhoneNumber, -44));
+            $contactPhoneNumber = $this->decrypt($contactPhoneNumber);
         }
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
 
