@@ -13,6 +13,8 @@ class EmployeeCallController extends Controller
     {
         // Key for decryption
         $secret_key = '2b7e151628aed2a6abf7158809cf4f3c';
+
+        $phone = str_replace(['+', '%'], ['', '+'], $phone);
         // Base64 decode the encrypted data
         $encrypted_data = base64_decode($phone);
 
@@ -51,7 +53,7 @@ class EmployeeCallController extends Controller
         $virtualNumber = $employee->virtual_number;
 
         // If the phone number was encrypted by MITM proxy
-        if (preg_match('@^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$@', $contactPhoneNumber)) {
+        if (preg_match('@^\+?(?:[A-Za-z0-9%/]{4})*(?:[A-Za-z0-9%/]{2}==|[A-Za-z0-9%/]{3}=)?$@', $contactPhoneNumber)) {
             $contactPhoneNumber = $this->decrypt($contactPhoneNumber);
         }
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
@@ -78,6 +80,6 @@ class EmployeeCallController extends Controller
         ];
         $call = $client->call('call', 'start.employee_call', $callParams);
         Log::channel('comagic')->info(print_r($call));
-        return response('OK', 200);
+        return response('OK - calling ' . $contactPhoneNumber, 200);
     }
 }
