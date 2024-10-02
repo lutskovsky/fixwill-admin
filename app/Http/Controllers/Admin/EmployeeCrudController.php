@@ -46,10 +46,13 @@ class EmployeeCrudController extends CrudController
             'name'  => 'tg_login',
             'label' => 'Номер телефона аккаунта Telegram',
         ]);
-        CRUD::column([
-            'name'  => 'virtual_number',
-            'label' => 'Виртуальный номер для исходящих',
+        $this->crud->addColumn([
+            'name' => 'virtual_numbers_list', // The accessor name
+            'type' => 'model_function',
+            'label' => 'Вирт. номера',
+            'function_name' => 'getVirtualNumbersListAttribute', // The accessor method
         ]);
+
     }
 
     /**
@@ -81,9 +84,17 @@ class EmployeeCrudController extends CrudController
 
         CRUD::field('name')->label('Имя');
         CRUD::field('internal_phone')->label('Внутренний номер');
-        CRUD::field('virtual_number')->label('Виртуальный номер для исходящих');
         CRUD::field('remonline_login')->label('Логин в Ремонлайне');
         CRUD::field('tg_login')->label('Номер телефона аккаунта Telegram');
+        $this->crud->addField([
+            'label'     => "Виртуальные номера",
+            'type'      => 'select_multiple',
+            'name'      => 'virtualNumbers', // the method on your model that defines the relationship
+            'entity'    => 'virtualNumbers', // the method on your model that defines the relationship
+            'attribute' => 'number', // foreign key attribute that is shown to user
+            'model'     => "App\Models\VirtualNumber", // foreign key model
+            'pivot'     => true, // on create&update, do you need to add/delete pivot table entries?
+        ]);
 
         /**
          * Fields can be defined using the fluent syntax:

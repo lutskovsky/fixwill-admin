@@ -36,6 +36,10 @@ class Employee extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function virtualNumbers()
+    {
+        return $this->belongsToMany(VirtualNumber::class, 'employee_virtual_number');
+    }
     /*
     |--------------------------------------------------------------------------
     | SCOPES
@@ -48,6 +52,16 @@ class Employee extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Accessor to get virtual numbers as a comma-separated string.
+     *
+     * @return string
+     */
+    public function getVirtualNumbersListAttribute()
+    {
+         return $this->virtualNumbers->pluck('number')->implode(', ');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | MUTATORS
@@ -57,11 +71,6 @@ class Employee extends Model
     public function setTgLoginAttribute($value)
     {
         $this->attributes['tg_login'] = $this->sanitizePhone($value);
-    }
-
-    public function setVirtualNumberAttribute($value)
-    {
-        $this->attributes['virtual_number'] = $this->sanitizePhone($value);
     }
 
     /**

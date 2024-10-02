@@ -15,3 +15,5 @@ Route::prefix('webhook')->group(function () {
 });
 
 Route::post('employee-call', [\App\Http\Controllers\EmployeeCallController::class, 'handle']);
+Route::get('/employee/{remonline_login}/virtual-numbers', [\App\Http\Controllers\EmployeeController::class, 'getVirtualNumbers']);
+

@@ -35,6 +35,7 @@ class EmployeeCallController extends Controller
         // Retrieve the parameters from the GET request
         $contactPhoneNumber = $request->json('phone');
         $remonlineLogin = $request->json('username');
+        $virtualNumber = $request->json('virtual_number');
 
         // Validate the required parameters
         if (empty($contactPhoneNumber) || empty($remonlineLogin)) {
@@ -49,7 +50,6 @@ class EmployeeCallController extends Controller
         }
 
         $extension = $employee->internal_phone;
-        $virtualNumber = $employee->virtual_number;
 
         // If the phone number was encrypted by MITM proxy
         if (preg_match('@^\+?encrypted-phone-[A-Za-z0-9+/]*$@', $contactPhoneNumber)) {
