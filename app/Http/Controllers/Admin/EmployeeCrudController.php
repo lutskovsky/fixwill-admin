@@ -45,12 +45,14 @@ class EmployeeCrudController extends CrudController
         CRUD::column([
             'name'  => 'tg_login',
             'label' => 'Номер телефона аккаунта Telegram',
+            'priority' => 10,
         ]);
         $this->crud->addColumn([
             'name' => 'virtual_numbers_list', // The accessor name
             'type' => 'model_function',
             'label' => 'Вирт. номера',
             'function_name' => 'getVirtualNumbersListAttribute', // The accessor method
+            'priority' => 5,
         ]);
 
     }
