@@ -17,7 +17,7 @@ class EmployeeController extends Controller
         }
 
         // Get the employee's virtual numbers
-        $virtualNumbers = $employee->virtualNumbers()->get(['number']);
+        $virtualNumbers = $employee->virtualNumbers()->get(['number', 'description']);
 
         if ($virtualNumbers->isEmpty()) {
             return response()->json(['message' => 'No virtual numbers found for this employee'], 404);
