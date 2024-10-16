@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "475699e9ed4522ff0921fbe4808acf0b",
+    "content-hash": "355236704442e829416e6c46831ff1e9",
     "packages": [
         {
             "name": "backpack/basset",
@@ -1508,6 +1508,62 @@
                 }
             ],
             "time": "2023-12-03T19:50:20+00:00"
+        },
+        {
+            "name": "katoni/php-ffx",
+            "version": "v1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/katoni/php-ffx.git",
+                "reference": "b8bf03e1dccf4a9c466387fbe57246846ada72de"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/katoni/php-ffx/zipball/b8bf03e1dccf4a9c466387fbe57246846ada72de",
+                "reference": "b8bf03e1dccf4a9c466387fbe57246846ada72de",
+                "shasum": ""
+            },
+            "require": {
+                "ext-gmp": "*",
+                "php": "^7.3 || ^8.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.4",
+                "phpunit/phpunit": "^9.1.5",
+                "vimeo/psalm": "^3.11"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Katoni\\FFX\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Martin Skovvang Petersen",
+                    "email": "martin@katoni.dk",
+                    "homepage": "https://katoni.dk",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A pure PHP implementation of Format-preserving, Feistel-based encryption (FFX).",
+            "homepage": "https://github.com/katoni/php-ffx",
+            "keywords": [
+                "encryption",
+                "ffx",
+                "fpe",
+                "katoni",
+                "php-ffx"
+            ],
+            "support": {
+                "issues": "https://github.com/katoni/php-ffx/issues",
+                "source": "https://github.com/katoni/php-ffx/tree/v1.0"
+            },
+            "time": "2023-03-27T07:45:49+00:00"
         },
         {
             "name": "laravel/framework",
@@ -8468,7 +8524,8 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "ext-openssl": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"

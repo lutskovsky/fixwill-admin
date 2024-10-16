@@ -6,16 +6,16 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-openssl": "*",
         "backpack/crud": "^6.7",
         "backpack/theme-tabler": "^1.2",
+        "katoni/php-ffx": "^1.0",
         "laravel/framework": "^11.9",
-        "laravel/tinker": "^2.9",
-      "ext-openssl": "*"
+        "laravel/tinker": "^2.9"
     },
     "require-dev": {
         "backpack/generators": "^4.0",
         "fakerphp/faker": "^1.23",
-        "illuminate/support": "^10.0",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",
         "mockery/mockery": "^1.6",

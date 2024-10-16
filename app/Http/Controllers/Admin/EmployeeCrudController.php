@@ -96,6 +96,7 @@ class EmployeeCrudController extends CrudController
             'attribute' => 'number', // foreign key attribute that is shown to user
             'model'     => "App\Models\VirtualNumber", // foreign key model
             'pivot'     => true, // on create&update, do you need to add/delete pivot table entries?
+            'allows_null' => true, // Optional: Allow no selection
         ]);
 
         /**
