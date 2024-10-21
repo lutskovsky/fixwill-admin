@@ -232,15 +232,27 @@ function displayPopup(data) {
     popup.style.backgroundColor = '#fff';
     popup.style.border = '1px solid #ccc';
     popup.style.padding = '20px';
-    popup.style.zIndex = '9999';
+    popup.style.zIndex = '10001';
     popup.style.maxWidth = '80%';
     popup.style.maxHeight = '80%';
     popup.style.overflow = 'auto';
+    popup.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+    popup.style.borderRadius = '5px';
 
-    // Create a close button
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Закрыть';
-    closeButton.style.marginBottom = '10px';
+    // Prevent click events inside the popup from closing it
+    popup.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+
+    // Create a close "X" in the corner
+    const closeButton = document.createElement('span');
+    closeButton.textContent = '✕'; // Unicode multiplication sign
+    closeButton.style.position = 'absolute';
+    closeButton.style.top = '5px';
+    closeButton.style.right = '8px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.fontWeight = 'bold';
+    closeButton.style.fontSize = '16px';
     closeButton.addEventListener('click', () => {
         document.body.removeChild(popupOverlay);
     });
@@ -251,8 +263,29 @@ function displayPopup(data) {
     // Display the data as "Key: Value"
     for (const key in data) {
         if (data.hasOwnProperty(key)) {
+            if (key === 'phones') continue;
             const p = document.createElement('p');
-            p.textContent = `${key}: ${data[key]}`;
+            const b = document.createElement('b');
+            const span = document.createElement('span');
+            b.textContent = `${key}:`;
+            span.textContent = ` ${data[key]}`;
+            p.appendChild(b);
+            p.appendChild(span);
+            popup.appendChild(p);
+        }
+    }
+
+    if (data.hasOwnProperty('phones')) {
+        const phones = data.phones;
+        for (const phone in phones) {
+            const p = document.createElement('p');
+            const span = document.createElement('span');
+            span.textContent = phone.text + ' ';
+            p.appendChild(span);
+            const a = document.createElement('a');
+            a.textContent = "Позвонить";
+            a.dataset.encrypted = phone.encrypted;
+            p.appendChild(a);
             popup.appendChild(p);
         }
     }
@@ -265,11 +298,20 @@ function displayPopup(data) {
     popupOverlay.style.width = '100%';
     popupOverlay.style.height = '100%';
     popupOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    popupOverlay.style.zIndex = '9998';
+    popupOverlay.style.zIndex = '10000';
 
+    // Add click event to overlay to close the popup
+    popupOverlay.addEventListener('click', () => {
+        document.body.removeChild(popupOverlay);
+    });
+
+    // Append the popup to the overlay
     popupOverlay.appendChild(popup);
+
+    // Append the overlay to the body
     document.body.appendChild(popupOverlay);
 }
+
 
 // Create a MutationObserver to watch for changes in the DOM
 const observer = new MutationObserver((mutationsList) => {

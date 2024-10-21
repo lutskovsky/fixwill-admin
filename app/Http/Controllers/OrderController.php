@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Crypt;
 use Fixwill\RemonlineApi;
 
 class OrderController extends Controller
@@ -34,6 +34,18 @@ class OrderController extends Controller
         }
 
         $clientJson['Примечание'] = $client['notes'];
+
+        if (isset($client['phone'])) {
+            $phones = [];
+            foreach ($client['phone'] as $phone) {
+                $phones[] = [
+                    'text' => substr($phone, 0, 7) . '****',
+                    'encrypted' => Crypt::encryptString($phone)
+                ];
+            }
+            $clientJson['phones'] = $phones;
+        }
+
         return response()->json($clientJson);
     }
 }
