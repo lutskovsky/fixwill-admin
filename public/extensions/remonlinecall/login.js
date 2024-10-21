@@ -7,7 +7,7 @@ function saveUsernameOnSubmit() {
         loginForm.addEventListener('submit', () => {
             const username = usernameField.value;
             chrome.storage.local.set({ savedUsername: username }).then(() => {
-                console.log("Value is set");
+                console.log("username "+ username +" is set");
             });
         });
     }

@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Remonline Caller",
+  "version": "1.0",
+  "description": "Calls",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "webRequest",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "https://web.remonline.app/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://web.remonline.app/*"],
+      "exclude_matches": ["https://web.remonline.app/login"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://web.remonline.app/login"],
+      "js": ["login.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

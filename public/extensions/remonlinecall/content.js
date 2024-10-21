@@ -162,20 +162,19 @@ function sendEmployeeCall(phoneNumber, username, virtualNumber) {
 
 // Function to replace strings matching specific patterns
 function replaceSensitiveData(node) {
-    if (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'input' && node.type === 'tel') {
-        // Set the value to '70000000000'
-        node.value = '70000000000';
-    }
+    // if (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'input' && node.type === 'tel') {
+    //     // Set the value to '70000000000'
+    //     node.value = '70000000000';
+    // }
 
     const regex1 = /\+?encrypted-phone-[A-Za-z0-9+\/]*/g;
-    const regex2 = /\+7 \([0-9]{3}\) [0-9]{3}-[0-9]{2}-[0-9]{2}/g;
+    // const regex2 = /\+7 \([0-9]{3}\) [0-9]{3}-[0-9]{2}-[0-9]{2}/g;
 
     if (node.nodeType === Node.TEXT_NODE) {
         if (!node.processed) {
             const originalText = node.textContent;
             node.textContent = originalText
-                .replace(regex1, "Номер скрыт")
-                .replace(regex2, "Номер скрыт");
+                .replace(regex1, "Номер скрыт");
             node.processed = true; // Mark this node as processed
         }
     } else if (node.nodeType === Node.ELEMENT_NODE && node.childNodes) {
