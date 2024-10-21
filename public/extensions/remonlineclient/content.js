@@ -3,14 +3,9 @@ let clientId = null;
 function handleTelLinkClick(event) {
     let target = event.target;
 
-    // Traverse up the DOM to find the <a> parent element
-    while (target && target.tagName !== 'A') {
-        target = target.parentElement;
-    }
-
-    if (target && target.getAttribute('href') && target.getAttribute('href').startsWith('tel:')) {
+    if (target && target.dataset.encrypted) {
         event.preventDefault();
-        const phoneNumber = target.getAttribute('href').substring(4); // Remove 'tel:'
+        const phoneNumber = target.dataset.encrypted;
 
         // Retrieve username from local storage
         chrome.storage.local.get('savedUsername', (data) => {
@@ -66,7 +61,7 @@ function showVirtualNumbersPopup(targetElement, virtualNumbers, phoneNumber, use
     popup.style.backgroundColor = '#fff';
     popup.style.border = '1px solid #ccc';
     popup.style.padding = '10px';
-    popup.style.zIndex = 9999;
+    popup.style.zIndex = '10100';
     popup.style.boxShadow = '0px 2px 6px rgba(0,0,0,0.2)';
 
     // Position the popup near the target element
@@ -276,15 +271,25 @@ function displayPopup(data) {
     }
 
     if (data.hasOwnProperty('phones')) {
+        popup.appendChild(document.createElement('br'));
+
+        const p = document.createElement('p');
+        const b = document.createElement('b');
+        b.textContent = "Телефоны:";
+        p.appendChild(b);
+        popup.appendChild(p);
+
         const phones = data.phones;
-        for (const phone in phones) {
+        for (const i in phones) {
             const p = document.createElement('p');
             const span = document.createElement('span');
-            span.textContent = phone.text + ' ';
+            span.textContent = phones[i].text + ' ';
             p.appendChild(span);
             const a = document.createElement('a');
             a.textContent = "Позвонить";
-            a.dataset.encrypted = phone.encrypted;
+            a.dataset.encrypted = phones[i].encrypted;
+            a.style.cursor = 'pointer';
+            a.addEventListener('click', handleTelLinkClick);
             p.appendChild(a);
             popup.appendChild(p);
         }

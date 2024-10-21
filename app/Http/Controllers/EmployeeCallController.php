@@ -5,44 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use Fixwill\ComagicClient;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 
 class EmployeeCallController extends Controller
 {
-    private function decrypt($phone): string
-    {
-        if (strlen($phone) != 11) return $phone;
-
-        $secret_key = '2b7e151628aed2a6abf7158809cf4f3c';
-        $alphabet = '0123456789';
-
-        $ffx = new \Katoni\FFX\Codecs\Text($secret_key, $alphabet, 11);
-        return $ffx->decrypt($phone);
-
-
-//        // Key for decryption
-//
-//
-//        // Base64 decode the encrypted data
-//        $encrypted_data = base64_decode($phone);
-//
-//        // Extract the initialization vector and the actual encrypted data
-//        $iv = substr($encrypted_data, 0, 16);
-//        $ciphertext = substr($encrypted_data, 16);
-//
-//        // Decrypt the data
-//        $decrypted_data = openssl_decrypt($ciphertext, 'aes-256-cbc', $secret_key, OPENSSL_RAW_DATA, $iv);
-//
-//        // Remove the padding
-//        $decrypted_data = rtrim($decrypted_data, "\0..\16");
-
-//        return $decrypted_data;
-    }
-
     public function handle(Request $request)
     {
         // Retrieve the parameters from the GET request
         $contactPhoneNumber = $request->json('phone');
+
+        Log::channel('comagic')->info(print_r($contactPhoneNumber));
         $remonlineLogin = $request->json('username');
         $virtualNumber = $request->json('virtual_number');
 
@@ -60,11 +33,8 @@ class EmployeeCallController extends Controller
 
         $extension = $employee->internal_phone;
 
-        // If the phone number was encrypted by MITM proxy
-        if (preg_match('/^\+?encrypted-phone-\d*$/', $contactPhoneNumber)) {
-            $contactPhoneNumber = preg_replace('/^\+?encrypted-phone-850/', '', $contactPhoneNumber);
-            $contactPhoneNumber = $this->decrypt($contactPhoneNumber);
-        }
+        $contactPhoneNumber = Crypt::decryptString($contactPhoneNumber);
+        Log::channel('comagic')->info(print_r($contactPhoneNumber));
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
 
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new \GuzzleHttp\Client());
