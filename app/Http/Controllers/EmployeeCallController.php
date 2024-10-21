@@ -15,7 +15,7 @@ class EmployeeCallController extends Controller
         // Retrieve the parameters from the GET request
         $contactPhoneNumber = $request->json('phone');
 
-        Log::channel('comagic')->info(print_r($contactPhoneNumber));
+//        Log::channel('comagic')->info(print_r($contactPhoneNumber));
         $remonlineLogin = $request->json('username');
         $virtualNumber = $request->json('virtual_number');
 
@@ -34,7 +34,7 @@ class EmployeeCallController extends Controller
         $extension = $employee->internal_phone;
 
         $contactPhoneNumber = Crypt::decryptString($contactPhoneNumber);
-        Log::channel('comagic')->info(print_r($contactPhoneNumber));
+//        Log::channel('comagic')->info(print_r($contactPhoneNumber));
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
 
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new \GuzzleHttp\Client());
@@ -59,6 +59,6 @@ class EmployeeCallController extends Controller
         ];
         $call = $client->call('call', 'start.employee_call', $callParams);
 //        Log::channel('comagic')->info(print_r($call));
-        return response('OK - calling ' . $contactPhoneNumber, 200);
+        return response('OK', 200);
     }
 }
