@@ -15,23 +15,33 @@ class EmployeeCallController extends Controller
         // Retrieve the parameters from the GET request
         $contactPhoneNumber = $request->json('phone');
 
-//        Log::channel('comagic')->info(print_r($contactPhoneNumber));
-        $remonlineLogin = $request->json('username');
         $virtualNumber = $request->json('virtual_number');
 
+
+        $user = auth()->user();
+
+        if (!$user) {
+            // Employee not found
+            return response()->json(['message' => 'Пользователь не вошёл в систему'], 404);
+        }
+
+        // Get the employee's virtual numbers
+        $extension = $user->internal_phone;
+
+
         // Validate the required parameters
-        if (empty($contactPhoneNumber) || empty($remonlineLogin)) {
+        if (empty($contactPhoneNumber)) {
             return response('Invalid parameters', 400);
         }
 
-        // Search for the employee in the Employees table
-        $employee = Employee::where('remonline_login', $remonlineLogin)->first();
-
-        if (!$employee) {
-            return response('Employee not found', 404);
-        }
-
-        $extension = $employee->internal_phone;
+//        // Search for the employee in the Employees table
+//        $employee = Employee::where('remonline_login', $remonlineLogin)->first();
+//
+//        if (!$employee) {
+//            return response('Employee not found', 404);
+//        }
+//
+//        $extension = $employee->internal_phone;
 
         $contactPhoneNumber = Crypt::decryptString($contactPhoneNumber);
 //        Log::channel('comagic')->info(print_r($contactPhoneNumber));
@@ -57,6 +67,8 @@ class EmployeeCallController extends Controller
                 'id' => $id
             ]
         ];
+
+//        dd($callParams);
         $call = $client->call('call', 'start.employee_call', $callParams);
 //        Log::channel('comagic')->info(print_r($call));
         return response('OK', 200);

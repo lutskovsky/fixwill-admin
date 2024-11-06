@@ -8,10 +8,14 @@
         "php": "^8.2",
         "ext-openssl": "*",
         "backpack/crud": "^6.7",
+        "backpack/permissionmanager": "^7.2",
         "backpack/theme-tabler": "^1.2",
+        "inertiajs/inertia-laravel": "^1.0",
         "katoni/php-ffx": "^1.0",
         "laravel/framework": "^11.9",
-        "laravel/tinker": "^2.9"
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^2.9",
+        "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
         "backpack/generators": "^4.0",

@@ -13,9 +13,9 @@ class VirtualNumber extends Model
 
     protected $fillable = ['number', 'description'];
 
-    public function employees()
+    public function users()
     {
-        return $this->belongsToMany(Employee::class, 'employee_virtual_number');
+        return $this->belongsToMany(Employee::class, 'user_virtual_number');
     }
 
 

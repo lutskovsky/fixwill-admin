@@ -20,10 +20,10 @@ class OrderController extends Controller
         $order = $remonline->getOrders(['id_labels' => [$orderLabel]]);
         $client = $order['data'][0]['client'];
         $clientJson = [
-            'Имя' => $client['name'],
-            'Адрес' => $client['address'],
+            'name' => $client['name'],
+            'email' => $client['email'],
+
         ];
-//        dd($client);
         foreach ($client['custom_fields'] as $id => $value) {
             if (is_bool($value)) {
                 $value = $value ? "Да" : "Нет";

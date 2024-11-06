@@ -14,7 +14,6 @@ Route::prefix('webhook')->group(function () {
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
 });
 
-Route::post('employee-call', [\App\Http\Controllers\EmployeeCallController::class, 'handle']);
 Route::get('/employee/{remonline_login}/virtual-numbers', [\App\Http\Controllers\EmployeeController::class, 'getVirtualNumbers']);
 Route::get('/order/{orderLabel}/client', [\App\Http\Controllers\OrderController::class, 'getClient']);
 
