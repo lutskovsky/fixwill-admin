@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Клиент в заказе {{ orderLabel }}</h1>
+        <h1 class="text-2xl font-bold mb-4"> {{ title }}</h1>
 
         <div v-if="$page.props.flash.message" class="bg-green-100 text-green-700 p-2 mb-4 rounded">
             {{ $page.props.flash.message }}
@@ -50,25 +50,37 @@
                 />
             </div>
 
-            <div v-for="field in form.customFields">
-
-
-                <label class="block text-gray-700">{{ field.name }}:</label>
-
+            <div>
+                <label class="block text-gray-700">Юрлицо:</label>
 
                 <input
-                    v-if="field.type !== 0"
-                    v-model="field.value"
-                    class="mt-1 block w-full border rounded p-2 h-6"
-                    type="text"
-                />
-
-                <input
-                    v-else
-                    v-model="field.value"
+                    v-model="form.legalEntity"
                     class="mt-1 block h-5 w-5 h-6"
                     type="checkbox"
                 />
+
+            </div>
+
+
+            <div v-for="field in form.customFields" v-if="clientId">
+                <template v-if="!field.legal || (field.legal && form.legalEntity) ">
+
+                    <label class="block text-gray-700">{{ field.name }}:</label>
+
+                    <input
+                        v-if="field.type !== 0"
+                        v-model="field.value"
+                        class="mt-1 block w-full border rounded p-2 h-6"
+                        type="text"
+                    />
+
+                    <input
+                        v-else
+                        v-model="field.value"
+                        class="mt-1 block h-5 w-5 h-6"
+                        type="checkbox"
+                    />
+                </template>
 
             </div>
 
@@ -96,7 +108,7 @@
 
             </div>
 
-            <h1 class="font-bold">Выбрать АОН</h1>
+            <h1 v-if="clientId" class="font-bold">Выбрать АОН</h1>
             <label v-for="number in form.virtualNumbers">
                 <input
                     v-model="selectedVirtualNumber"
@@ -143,6 +155,11 @@ export default {
             newPhone: '',
         }
     },
+    computed: {
+        title() {
+            return this.clientId ? `Клиент в заказе ${this.orderLabel}` : "Создание нового заказа и клиента";
+        },
+    },
     setup(props) {
 
         // const { flash } = usePage().props.value;
@@ -164,6 +181,7 @@ export default {
             address: props.clientData?.address || '',
             email: props.clientData?.email || '',
             notes: props.clientData?.notes || '',
+            legalEntity: props.clientData?.legalEntity || false,
             customFields: formCustomFields,
             phones: props.phones || [],
             virtualNumbers: props.virtualNumbers || [],

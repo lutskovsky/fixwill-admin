@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
+use App\Integrations\ComagicClient;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
-use Fixwill\ComagicClient;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
 
 class EmployeeCallController extends Controller
 {
@@ -47,7 +46,7 @@ class EmployeeCallController extends Controller
 //        Log::channel('comagic')->info(print_r($contactPhoneNumber));
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
 
-        $client = new ComagicClient(env('COMAGIC_TOKEN'), new \GuzzleHttp\Client());
+        $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
 
         $call = $client->call('data', 'get.employees');
         $employees = $call['result']['data'];

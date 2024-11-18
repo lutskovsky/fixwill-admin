@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Integrations\RemonlineApi;
 use App\Models\Employee;
-use Fixwill\RemonlineApi;
+use Illuminate\Http\Request;
 
 class ComagicWebhookController extends Controller
 {

@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Integrations\RemonlineApi;
 use Illuminate\Support\Facades\Crypt;
-use Fixwill\RemonlineApi;
 
 class OrderController extends Controller
 {

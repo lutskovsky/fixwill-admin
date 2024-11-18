@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\ComagicWebhookController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportPresetController;
 use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +18,13 @@ Route::prefix('webhook')->group(function () {
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
 });
 
-Route::get('/employee/{remonline_login}/virtual-numbers', [\App\Http\Controllers\EmployeeController::class, 'getVirtualNumbers']);
-Route::get('/order/{orderLabel}/client', [\App\Http\Controllers\OrderController::class, 'getClient']);
+Route::get('/employee/{remonline_login}/virtual-numbers', [EmployeeController::class, 'getVirtualNumbers']);
+Route::get('/order/{orderLabel}/client', [OrderController::class, 'getClient']);
+Route::get('report/fetch-orders', [ReportController::class, 'fetchOrders'])->name('report.orders');
+
+// Route to get all report presets
+Route::get('/report-presets', [ReportPresetController::class, 'index']);
+
+// Route to store a new report preset
+Route::post('/report-presets', [ReportPresetController::class, 'store'])->name('report.preset.store');
 

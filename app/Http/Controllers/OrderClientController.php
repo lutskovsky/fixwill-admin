@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Integrations\RemonlineApi;
 use Illuminate\Http\Request;
-use Fixwill\RemonlineApi;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class OrderClientController extends Controller
 {
@@ -29,6 +28,13 @@ class OrderClientController extends Controller
         $customFieldsResp = $this->remonline->getClientCustomFields();
         $customFieldsSettings = $customFieldsResp['data'];
 
+        foreach ($customFieldsSettings as $index => $field) {
+            if (in_array($field['id'], $this->remonline->legalEntityFields)) {
+                $customFieldsSettings[$index]['legal'] = true;
+            }
+        }
+//        dd($customFieldsSettings);
+
         if ($orderLabel) {
             $virtualNumbers = $user->virtualNumbers()->get(['number', 'description']);
             if ($virtualNumbers->isEmpty()) {
@@ -45,6 +51,7 @@ class OrderClientController extends Controller
                 'address' => $client['address'],
                 'email' => $client['email'],
                 'notes' => $client['notes'],
+                'legalEntity' => $client['juridical'],
             ];
 
             $clientCustomFields = $client['custom_fields'];
@@ -109,18 +116,25 @@ class OrderClientController extends Controller
             'address' => $clientData['address'],
 
             'phone' => $requestPhones,
-            'custom_fields' => json_encode($requestCustomFields),
         ];
 
 //        dd($remonlineClientRequestData);
         if (!$clientData['clientId']) { // Create client and then order
             $resp = $this->remonline->createClient($remonlineClientRequestData);
-            dd($resp);
+            $clientId = $resp['data']['id'];
+            $resp = $this->remonline->createOrder([
+                'branch_id' => 50230,
+                'order_type' => 89790,
+                'client_id' => $clientId
+            ]);
+            $orderId = $resp['data']['id'];
+            return Inertia::location('https://web.remonline.app/orders/table/' . $orderId);
         }
 
         $remonlineClientRequestData['id'] = $clientData['clientId'];
+        $remonlineClientRequestData['custom_fields'] = json_encode($requestCustomFields);
         $resp = $this->remonline->updateClient($remonlineClientRequestData);
-
+//        dd($resp);
         return redirect()->route('order.client.show', ['orderLabel' => $clientData['orderLabel']])
             ->with('success', 'Client updated successfully.');
 

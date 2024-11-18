@@ -5,3 +5,4 @@
 <x-backpack::menu-item title="Сотрудники" icon="la la-id-badge" :link="backpack_url('employee')" />
 
 <x-backpack::menu-item title="Виртуальные номера" icon="la la-tty" :link="backpack_url('virtual-number')" />
+

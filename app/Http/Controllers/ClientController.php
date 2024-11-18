@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Fixwill\RemonlineApi;
 
 class ClientController extends Controller
 {
