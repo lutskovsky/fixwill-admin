@@ -282,13 +282,13 @@ function roundedAvgFunc(params) {
     if (values.length === 0) return 0;
     const sum = values.reduce((acc, val) => acc + val, 0);
     const average = sum / values.length;
-    return Math.round(average * 100) / 100; // Round to 2 decimal places
+    return Math.round(average); // Round to 2 decimal places
 }
 
 function roundedSumFunc(params) {
     const values = params.values || [];
     const sum = values.reduce((acc, val) => acc + val, 0);
-    return Math.round(sum * 100) / 100; // Round to 2 decimal places
+    return Math.round(sum); // Round to 2 decimal places
 }
 
 const props = defineProps({
