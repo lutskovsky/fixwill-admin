@@ -299,6 +299,8 @@ const props = defineProps({
 
 const gridApi = ref(null);
 const presets = ref(props.presets);
+const selectedPresetName = ref('');
+const loadButtonText = ref('Загрузить заказы');
 
 const selectedTypes = ref([]);
 const selectedStatuses = ref([]);
@@ -375,6 +377,8 @@ const loadData = () => {
     try {
         const fetchUrl = route('report.orders')
 
+        loadButtonText.value = "Загружаем...";
+
         axios.get(fetchUrl, {
             params: {
                 startDate: startDate.value,
@@ -385,6 +389,7 @@ const loadData = () => {
         })
             .then(function (response) {
                 rowData.value = response.data;
+                loadButtonText.value = "Загрузить заказы";
             })
 
         // const data = await response.json();
@@ -437,10 +442,15 @@ const presetChange = (selectedOption, id) => {
     const presetTypes = selectedOption.settings.types;
     const colState = selectedOption.settings.colState;
     const filterState = selectedOption.settings.filterState;
+    selectedPresetName.value = selectedOption.name;
+    console.log(selectedOption.name);
     selectedStatuses.value = presetStatuses;
     selectedTypes.value = presetTypes;
 
-    gridApi.value.applyColumnState({state: colState});
+    gridApi.value.applyColumnState({
+        state: colState,
+        applyOrder: true,
+    });
     gridApi.value.setFilterModel(filterState);
 };
 </script>
@@ -498,7 +508,7 @@ const presetChange = (selectedOption, id) => {
                              :preselect-first="false"
                              :preserve-search="true" label="name" placeholder="Пресеты" track-by="id"
                              @select="presetChange">
-                    <template slot="singleLabel" slot-scope="{ option }"><strong>{{ option.name }}</strong></template>
+                    <template slot="singleLabel"><strong>{{ selectedPresetName }}</strong></template>
                 </multiselect>
             </div>
             <div class="col-md-3 d-flex align-items-end">
@@ -513,7 +523,7 @@ const presetChange = (selectedOption, id) => {
         <div class="row mb-4">
 
             <div class="col-md-3 d-flex align-items-end">
-                <button class="btn btn-primary w-100" @click="loadData">Загрузить заказы</button>
+                <button class="btn btn-primary w-100" @click="loadData">{{ loadButtonText }}</button>
             </div>
 
 
