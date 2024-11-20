@@ -83,6 +83,7 @@ class ReportController extends Controller
             $item = [
 //            'label' => "<a href='fsfff.io' target='_blank'>" . $order['id_label'] . "</a>",
 
+                'id' => $order['id'],
                 'label' => $order['id_label'],
                 'status' => $order['status']['name'] ?? null,
                 'date' => $closeDate,

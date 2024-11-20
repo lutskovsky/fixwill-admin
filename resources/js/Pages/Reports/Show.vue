@@ -324,7 +324,11 @@ const columnDefs = ref([
             browserDatePicker: true
         },
     },
-    {headerName: "Заказ", field: "label"},
+    {
+        headerName: "Заказ",
+        field: "label",
+        cellRenderer: params => `<a href="https://web.remonline.app/orders/table/${params.node.data.id}" target="_blank">${params.value}</a>`
+    },
     {headerName: "Стоимость заказа", field: "revenue"},
     {headerName: "Себестоимость материалов", field: "costParts"},
     {headerName: "Сумма себестоимости материалов", field: "costParts", aggFunc: roundedSumFunc},
@@ -342,6 +346,7 @@ const columnDefs = ref([
 
 // Grid options
 const gridOptions = ref({
+    cellSelection: true,
     localeText: AG_GRID_LOCALE_RU,
     sideBar: 'columns',
     defaultColDef: {
@@ -508,7 +513,7 @@ const presetChange = (selectedOption, id) => {
                              :preselect-first="false"
                              :preserve-search="true" label="name" placeholder="Пресеты" track-by="id"
                              @select="presetChange">
-                    <template slot="singleLabel"><strong>{{ selectedPresetName }}</strong></template>
+                    <span class="multiselect__single"><strong>{{ selectedPresetName }}</strong></span>
                 </multiselect>
             </div>
             <div class="col-md-3 d-flex align-items-end">
