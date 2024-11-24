@@ -16,13 +16,21 @@
   "content_scripts": [
     {
       "matches": ["https://web.remonline.app/*"],
-      "exclude_matches": ["https://web.remonline.app/login"],
-      "js": ["content.js"],
-      "run_at": "document_end"
+        "js": [
+            "settings.js"
+        ]
     },
+
     {
-      "matches": ["https://web.remonline.app/login"],
-      "js": ["login.js"],
+        "matches": [
+            "https://web.remonline.app/*"
+        ],
+        "exclude_matches": [
+            "https://web.remonline.app/login"
+        ],
+        "js": [
+            "content.js"
+        ],
       "run_at": "document_end"
     }
   ]

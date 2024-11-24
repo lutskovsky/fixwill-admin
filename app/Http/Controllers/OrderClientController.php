@@ -132,7 +132,7 @@ class OrderClientController extends Controller
         }
 
         $remonlineClientRequestData['id'] = $clientData['clientId'];
-        $remonlineClientRequestData['custom_fields'] = json_encode($requestCustomFields);
+//        $remonlineClientRequestData['custom_fields'] = json_encode($requestCustomFields);
         $resp = $this->remonline->updateClient($remonlineClientRequestData);
 //        dd($resp);
         return redirect()->route('order.client.show', ['orderLabel' => $clientData['orderLabel']])

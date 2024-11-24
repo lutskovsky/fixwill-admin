@@ -33,11 +33,17 @@ const showingNavigationDropdown = ref(false);
                             <div
                                 class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
                             >
+                                <!--                                <NavLink-->
+                                <!--                                    :active="route().current('dashboard')"-->
+                                <!--                                    :href="route('dashboard')"-->
+                                <!--                                >-->
+                                <!--                                    Dashboard-->
+                                <!--                                </NavLink>-->
                                 <NavLink
-                                    :active="route().current('dashboard')"
-                                    :href="route('dashboard')"
+                                    :active="route().current('order.new')"
+                                    :href="route('order.new')"
                                 >
-                                    Dashboard
+                                    Создать заказ
                                 </NavLink>
                             </div>
                         </div>

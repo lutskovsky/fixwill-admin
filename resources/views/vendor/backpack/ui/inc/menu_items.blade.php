@@ -2,7 +2,6 @@
 <li class="nav-item"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> {{ trans('backpack::base.dashboard') }}</a></li>
 
 <x-backpack::menu-item title="Пользователи" icon="la la-user" :link="backpack_url('user')" />
-<x-backpack::menu-item title="Сотрудники" icon="la la-id-badge" :link="backpack_url('employee')" />
 
 <x-backpack::menu-item title="Виртуальные номера" icon="la la-tty" :link="backpack_url('virtual-number')" />
 

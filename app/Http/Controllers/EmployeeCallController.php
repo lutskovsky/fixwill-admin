@@ -11,10 +11,18 @@ class EmployeeCallController extends Controller
 {
     public function handle(Request $request)
     {
-        // Retrieve the parameters from the GET request
-        $contactPhoneNumber = $request->json('phone');
+        $phoneText = $request->json('phoneText');
+        $encryptedPhone = $request->json('encryptedPhone');
+        if (str_contains($phoneText, '*')) {
+            $contactPhoneNumber = Crypt::decryptString($encryptedPhone);
+        } else {
+            $contactPhoneNumber = $phoneText;
+        }
 
-        $virtualNumber = $request->json('virtual_number');
+//        $contactPhoneNumber = $request->json('phone');
+
+
+        $virtualNumber = $request->json('virtualNumber');
 
 
         $user = auth()->user();
@@ -42,7 +50,7 @@ class EmployeeCallController extends Controller
 //
 //        $extension = $employee->internal_phone;
 
-        $contactPhoneNumber = Crypt::decryptString($contactPhoneNumber);
+//        $contactPhoneNumber = Crypt::decryptString($contactPhoneNumber);
 //        Log::channel('comagic')->info(print_r($contactPhoneNumber));
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
 

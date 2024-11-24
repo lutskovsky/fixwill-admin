@@ -42,11 +42,10 @@
             </div>
             <div>
                 <label class="block text-gray-700">Примечание:</label>
-                <input
+                <textarea
                     v-model="form.notes"
                     class="mt-1 block w-full border rounded p-2 h-6"
-                    type="text"
-
+                    rows="4"
                 />
             </div>
 
@@ -67,19 +66,13 @@
 
                     <label class="block text-gray-700">{{ field.name }}:</label>
 
-                    <input
+                    <span
                         v-if="field.type !== 0"
-                        v-model="field.value"
-                        class="mt-1 block w-full border rounded p-2 h-6"
-                        type="text"
-                    />
+                    > {{ field.value }} </span>
 
-                    <input
+                    <span
                         v-else
-                        v-model="field.value"
-                        class="mt-1 block h-5 w-5 h-6"
-                        type="checkbox"
-                    />
+                    >{{ field.value ? 'Да' : 'Нет' }} </span>
                 </template>
 
             </div>
@@ -92,19 +85,20 @@
                     class="mt-1 block w-full border rounded p-2 h-6"
                     type="text"
                 />
-                <p><a :data-encrypted="phone.encrypted" href="#" @click.prevent="call">Позвонить</a> <a
+                <p><a :data-encrypted="phone.encrypted" :data-phonetext="phone.text" href="#" @click.prevent="call">Позвонить</a>
+                    <a
                     class="text-red-800" href="#" @click.prevent="removePhone(phone)">Удалить</a></p>
 
             </div>
 
-            <h2 class="font-bold">Добавить телефон</h2>
+            <!--            <h2 class="font-bold"></h2>-->
             <div>
-                <input
-                    v-model="newPhone"
-                    class="mt-1 block w-full border rounded p-2 h-6 "
-                    type="text"
-                />
-                <p><a href="#" @click.prevent="addPhone">Добавить</a></p>
+                <!--                <input-->
+                <!--                    v-model="newPhone"-->
+                <!--                    class="mt-1 block w-full border rounded p-2 h-6 "-->
+                <!--                    type="text"-->
+                <!--                />-->
+                <p><a href="#" @click.prevent="addPhone">Добавить телефон</a></p>
 
             </div>
 
@@ -205,6 +199,7 @@ export default {
 
     methods: {
         call(e) {
+            const phoneText = e.target.dataset.phonetext;
             const encryptedPhone = e.target.dataset.encrypted;
             const virtualNumber = this.selectedVirtualNumber;
             if (!virtualNumber) {
@@ -214,8 +209,9 @@ export default {
             // debugger;
             // console.log(this.callRoute);
             axios.post(route('employee.call'), {
-                phone: encryptedPhone,
-                virtual_number: virtualNumber
+                encryptedPhone: encryptedPhone,
+                phoneText: phoneText,
+                virtualNumber: virtualNumber
             })
                 .then(response => {
                     console.log('Response:', response.data);
@@ -227,8 +223,8 @@ export default {
                 });
         },
         addPhone() {
-            this.form.phones.push({text: this.newPhone, encrypted: id++});
-            this.newPhone = '';
+            this.form.phones.push({text: "", encrypted: id++});
+            // this.newPhone = '';
         },
         removePhone(phone) {
             this.form.phones = this.form.phones.filter((t) => t !== phone);

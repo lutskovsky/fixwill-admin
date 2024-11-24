@@ -13,7 +13,7 @@ class RemonlineApi
     public array $legalEntityFields = [
         1644356,
         1070023,
-        1070023,
+        1070024,
         1070026,
         1070027,
         1070029,
