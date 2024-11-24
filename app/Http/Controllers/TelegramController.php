@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use Http;
 use Illuminate\Http\Request;
-use App\Models\Employee;
-use Illuminate\Support\Facades\Log;
 
 class TelegramController extends Controller
 {
@@ -45,7 +45,7 @@ class TelegramController extends Controller
     protected function processPhoneNumber($phoneNumber, $chatId)
     {
         $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
-        $employee = Employee::where('tg_login', $phoneNumber)->first();
+        $employee = User::where('tg_login', $phoneNumber)->first();
 
         if ($employee) {
             $employee->chat_id = $chatId;
@@ -73,7 +73,7 @@ class TelegramController extends Controller
             $data['reply_markup'] = json_encode($replyMarkup);
         }
 
-        $response = \Http::post($url, $data);
+        $response = Http::post($url, $data);
 
         return $response->successful();
     }

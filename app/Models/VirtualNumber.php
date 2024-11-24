@@ -15,7 +15,7 @@ class VirtualNumber extends Model
 
     public function users()
     {
-        return $this->belongsToMany(Employee::class, 'user_virtual_number');
+        return $this->belongsToMany(User::class, 'user_virtual_number');
     }
 
 

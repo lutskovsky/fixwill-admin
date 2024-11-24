@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
-use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ComagicWebhookController extends Controller
@@ -20,7 +20,7 @@ class ComagicWebhookController extends Controller
         }
 
         // Search for the employee in the Employees table
-        $employee = Employee::where('internal_phone', $employeeNumber)->first();
+        $employee = User::where('internal_phone', $employeeNumber)->first();
 
         if (!$employee) {
             return response('Employee not found', 404);
