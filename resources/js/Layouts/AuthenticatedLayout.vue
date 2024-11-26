@@ -40,10 +40,16 @@ const showingNavigationDropdown = ref(false);
                                 <!--                                    Dashboard-->
                                 <!--                                </NavLink>-->
                                 <NavLink
-                                    :active="route().current('order.new')"
-                                    :href="route('order.new')"
+                                    :active="route().current('client.new')"
+                                    :href="route('client.new')"
                                 >
-                                    Создать заказ
+                                    Создать заказ с новым клиентом
+                                </NavLink>
+                                <NavLink
+                                    :active="route().current('client.search.form')"
+                                    :href="route('client.search.form')"
+                                >
+                                    Поиск по клиентам
                                 </NavLink>
                             </div>
                         </div>

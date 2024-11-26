@@ -2,7 +2,7 @@
 
 <template>
     <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Search Clients</h1>
+        <h1 class="text-2xl font-bold mb-4">Поиск по клиентам</h1>
 
         <!-- Search Form -->
         <form class="mb-6" @submit.prevent="submit">
@@ -46,7 +46,7 @@
                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     type="submit"
                 >
-                    Search
+                    Искать
                 </button>
             </div>
         </form>
