@@ -2,6 +2,14 @@
     <div class="container mx-auto p-4">
         <h1 class="text-2xl font-bold mb-4"> {{ title }}</h1>
 
+        <Link v-if="clientId"
+              :href="route('client.order.create', { clientId: clientId })"
+              as="button"
+              class="text-blue-500 hover:text-blue-700"
+              method="post">
+            Создать новый заказ
+        </Link>
+
         <div v-if="$page.props.flash.message" class="bg-green-100 text-green-700 p-2 mb-4 rounded">
             {{ $page.props.flash.message }}
         </div>
@@ -125,13 +133,14 @@
 </template>
 
 <script>
-import {useForm} from '@inertiajs/vue3';
+import {Link, useForm} from '@inertiajs/vue3';
 // import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 
 let id = 0;
 
 export default {
+    components: {Link},
     props: {
         orderLabel: String,
         clientData: Object,
