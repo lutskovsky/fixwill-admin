@@ -9,7 +9,6 @@
         <form class="space-y-4 size-80" @submit.prevent="submit">
             <!-- Hidden Field for clientId -->
             <input v-model="form.clientId" type="hidden"/>
-            <input v-model="form.orderLabel" type="hidden"/>
 
             <div>
                 <label class="text-gray-700">Имя:</label>
@@ -44,7 +43,6 @@
                 <label class="block text-gray-700">Примечание:</label>
                 <textarea
                     v-model="form.notes"
-                    class="mt-1 block w-full border rounded p-2 h-6"
                     rows="4"
                 />
             </div>
@@ -151,7 +149,7 @@ export default {
     },
     computed: {
         title() {
-            return this.clientId ? `Клиент в заказе ${this.orderLabel}` : "Создание нового заказа и клиента";
+            return this.clientId ? `Просмотр клиента` : "Создание нового заказа и клиента";
         },
     },
     setup(props) {
@@ -181,9 +179,11 @@ export default {
             virtualNumbers: props.virtualNumbers || [],
         });
 
+        const routeName = props.clientId ? 'client.update' : 'client.create';
 
         const submit = () => {
-            form.post(route('order.create', props.clientId), {
+            const clientRoute = props.clientId ? route('client.update', props.clientId) : route('client.create');
+            form.post(clientRoute, {
                 onError: () => {
                     // Handle errors if needed
                 },
@@ -208,6 +208,7 @@ export default {
             }
             // debugger;
             // console.log(this.callRoute);
+
             axios.post(route('employee.call'), {
                 encryptedPhone: encryptedPhone,
                 phoneText: phoneText,

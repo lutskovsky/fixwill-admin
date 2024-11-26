@@ -19,3 +19,4 @@ yarn-error.log
 /.idea
 /.vscode
 /misc/test_comagic.php
+/public/extensions/remonlineclient/settings.js

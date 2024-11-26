@@ -25,7 +25,7 @@ function addClientLink(div) {
         if (!div.nextSibling || !div.nextSibling.classList || !div.nextSibling.classList.contains('client-link')) {
             // Create the "Клиент" link
             const clientLink = document.createElement('a');
-            clientLink.href = hostUrl + '/order/' + orderNumber + '/client';
+            clientLink.href = `${hostUrl}/client/order/${orderNumber}`;
             clientLink.target = "_blank";
             clientLink.textContent = 'Клиент';
             clientLink.classList.add('client-link');

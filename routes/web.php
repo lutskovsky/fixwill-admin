@@ -27,10 +27,18 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/order/{orderLabel}/client', [OrderClientController::class, 'show'])->name('order.client.show');
-    Route::get('/order/new', [OrderClientController::class, 'show'])->name('order.new');
-    Route::post('/order/create', [OrderClientController::class, 'updateOrCreate'])->name('order.create');
-    Route::post('/client/{clientId}/update', [OrderClientController::class, 'updateOrCreate'])->name('order.client.update');
+    Route::get('/client/search', [OrderClientController::class, 'searchForm'])->name('client.search.form');
+    Route::post('/client/search', [OrderClientController::class, 'search'])->name('client.search');
+
+    Route::get('/client/order/{orderLabel}', [OrderClientController::class, 'getClientByOrderLabel'])->name('client.order.show');
+    Route::get('/client/{clientId}', [OrderClientController::class, 'getClientById'])->name('client.show');
+
+    Route::post('/client/{clientId}/order/create', [OrderClientController::class, 'createOrder'])->name('client.order.create');
+
+    Route::get('/client', [OrderClientController::class, 'orderAndClientCreateForm'])->name('client.new');
+    Route::post('/client/create', [OrderClientController::class, 'createClientAndOrder'])->name('client.create');
+    Route::post('/client/{clientId}/update', [OrderClientController::class, 'updateClient'])->name('client.update');
+
     Route::get('/virtual_numbers', [RegisteredUserController::class, 'getVirtualNumbers'])->name('user.virtual_numbers.get');
     Route::post('employee-call', [EmployeeCallController::class, 'handle'])->name('employee.call');
 

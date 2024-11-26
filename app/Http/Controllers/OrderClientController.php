@@ -16,7 +16,33 @@ class OrderClientController extends Controller
         $this->remonline = $remonline;
     }
 
-    public function show($orderLabel = null)
+    public function getClientById($clientId)
+    {
+        $clients = $this->remonline->getClients(['ids' => [$clientId]]);
+        if (!$clients['data']) {
+            abort(404);
+        }
+        $clientData = $clients['data'][0];
+        return $this->show($clientData);
+    }
+
+    public function getClientByOrderLabel($orderLabel)
+    {
+        $order = $this->remonline->getOrders(['id_labels' => [$orderLabel]]);
+        $clientData = $order['data'][0]['client'];
+        return $this->show($clientData);
+    }
+
+    public function orderAndClientCreateForm()
+    {
+        return Inertia::render('OrderClient/Show', [
+            'createOrder' => true,
+            'customFieldsSettings' => $this->getCustomFieldsSettings(),
+        ]);
+    }
+
+
+    protected function show($client)
     {
         $user = auth()->user();
 
@@ -25,69 +51,143 @@ class OrderClientController extends Controller
             return response()->json(404, ['message' => 'Пользователь не вошёл в систему']);
         }
 
-        $customFieldsResp = $this->remonline->getClientCustomFields();
-        $customFieldsSettings = $customFieldsResp['data'];
+        $virtualNumbers = $user->virtualNumbers()->get(['number', 'description']);
+        $virtualNumbers = $virtualNumbers->toArray();
+
+        $clientId = $client['id'];
+
+        $clientData = [
+            'name' => $client['name'],
+            'address' => $client['address'],
+            'email' => $client['email'],
+            'notes' => $client['notes'],
+            'legalEntity' => $client['juridical'],
+        ];
+
+        $clientCustomFields = $client['custom_fields'];
+
+        $phones = [];
+
+        if (isset($client['phone'])) {
+            foreach ($client['phone'] as $phone) {
+                $phones[] = [
+                    'text' => substr($phone, 0, 7) . '****',
+                    'encrypted' => Crypt::encryptString($phone),
+                ];
+            }
+        }
+        return Inertia::render('OrderClient/Show', [
+            'clientId' => $clientId,
+            'createOrder' => false,
+            'clientData' => $clientData,
+            'phones' => $phones,
+            'clientCustomFields' => $clientCustomFields,
+            'customFieldsSettings' => $this->getCustomFieldsSettings(),
+            'virtualNumbers' => $virtualNumbers,
+        ]);
+    }
+
+    public function updateClient(Request $request, $clientId)
+    {
+        $remonlineClientRequestData = $this->prepareClientRequest($request);
+        $remonlineClientRequestData['id'] = $clientId;
+//        $remonlineClientRequestData['custom_fields'] = json_encode($requestCustomFields);
+        $resp = $this->remonline->updateClient($remonlineClientRequestData);
+        return redirect()->route('client.show', ['clientId' => $clientId])
+            ->with('success', 'Client updated successfully.');
+    }
+
+    public function createClientAndOrder(Request $request)
+    {
+        $remonlineClientRequestData = $this->prepareClientRequest($request);
+        $resp = $this->remonline->createClient($remonlineClientRequestData);
+        $clientId = $resp['data']['id'];
+        return $this->createOrder($clientId);
+    }
+
+    public function createOrder(mixed $clientId): mixed
+    {
+        $resp = $this->remonline->createOrder([
+            'branch_id' => 50230,
+            'order_type' => 89790,
+            'client_id' => $clientId
+        ]);
+
+        return Inertia::location('https://web.remonline.app/orders/table/' . $resp['data']['id']);
+    }
+
+//    public function updateOrCreate(Request $request)
+//    {
+//        $remonlineClientRequestData = $this->prepareClientRequest($request);
+//
+//        if (!$clientData['clientId']) { // Create client and then order
+//            $resp = $this->remonline->createClient($remonlineClientRequestData);
+//            $clientId = $resp['data']['id'];
+//            $orderId = $this->createOrder($clientId);
+//            return Inertia::location('https://web.remonline.app/orders/table/' . $orderId);
+//        }
+//
+//
+//    }
+
+    public function searchForm()
+    {
+        return Inertia::render('OrderClient/Search');
+    }
+
+    /**
+     * Handle the search request and fetch clients from a third-party API.
+     */
+    public function search(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+        ]);
+
+        $query = array_filter($validated); // Remove null values
+
+
+        $response = $this->remonline->getClients([
+            "names" => [$query['name'] ?? null],
+            "phones" => [$query['phone'] ?? null],
+            "emails" => [$query['email'] ?? null],
+        ]);
+
+        $clients = $response['data'];
+
+
+        // Return the view with the search results
+        return Inertia::render('OrderClient/Search', [
+            'clients' => $clients,
+            'filters' => $query,
+        ]);
+    }
+
+    /**
+     * @return array|mixed
+     */
+    protected function getCustomFieldsSettings(): mixed
+    {
+        $customFieldsSettings = $this->remonline->getClientCustomFields()['data'];
 
         foreach ($customFieldsSettings as $index => $field) {
             if (in_array($field['id'], $this->remonline->legalEntityFields)) {
                 $customFieldsSettings[$index]['legal'] = true;
             }
         }
-//        dd($customFieldsSettings);
-
-        if ($orderLabel) {
-            $virtualNumbers = $user->virtualNumbers()->get(['number', 'description']);
-            if ($virtualNumbers->isEmpty()) {
-                return response()->json(['message' => 'Нет виртуальных номеров'], 404);
-            }
-            $virtualNumbers = $virtualNumbers->toArray();
-
-            $order = $this->remonline->getOrders(['id_labels' => [$orderLabel]]);
-            $client = $order['data'][0]['client'];
-            $clientId = $client['id'];
-
-            $clientData = [
-                'name' => $client['name'],
-                'address' => $client['address'],
-                'email' => $client['email'],
-                'notes' => $client['notes'],
-                'legalEntity' => $client['juridical'],
-            ];
-
-            $clientCustomFields = $client['custom_fields'];
-
-            $phones = [];
-
-            if (isset($client['phone'])) {
-                foreach ($client['phone'] as $phone) {
-                    $phones[] = [
-                        'text' => substr($phone, 0, 7) . '****',
-                        'encrypted' => Crypt::encryptString($phone),
-                    ];
-                }
-            }
-            return Inertia::render('OrderClient/Show', [
-                'createOrder' => false,
-                'orderLabel' => $orderLabel,
-                'clientData' => $clientData,
-                'clientId' => $clientId,
-                'phones' => $phones,
-                'clientCustomFields' => $clientCustomFields,
-                'customFieldsSettings' => $customFieldsSettings,
-                'virtualNumbers' => $virtualNumbers,
-            ]);
-        }
-
-        return Inertia::render('OrderClient/Show', [
-            'createOrder' => true,
-            'customFieldsSettings' => $customFieldsSettings,
-        ]);
+        return $customFieldsSettings;
     }
 
-    public function updateOrCreate(Request $request)
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    protected function prepareClientRequest(Request $request): array
     {
         $clientData = $request->all();
-//        dd($clientData);
 
         $requestCustomFields = [];
         foreach ($clientData['customFields'] as $customField) {
@@ -117,27 +217,7 @@ class OrderClientController extends Controller
 
             'phone' => $requestPhones,
         ];
-
-//        dd($remonlineClientRequestData);
-        if (!$clientData['clientId']) { // Create client and then order
-            $resp = $this->remonline->createClient($remonlineClientRequestData);
-            $clientId = $resp['data']['id'];
-            $resp = $this->remonline->createOrder([
-                'branch_id' => 50230,
-                'order_type' => 89790,
-                'client_id' => $clientId
-            ]);
-            $orderId = $resp['data']['id'];
-            return Inertia::location('https://web.remonline.app/orders/table/' . $orderId);
-        }
-
-        $remonlineClientRequestData['id'] = $clientData['clientId'];
-//        $remonlineClientRequestData['custom_fields'] = json_encode($requestCustomFields);
-        $resp = $this->remonline->updateClient($remonlineClientRequestData);
-//        dd($resp);
-        return redirect()->route('order.client.show', ['orderLabel' => $clientData['orderLabel']])
-            ->with('success', 'Client updated successfully.');
-
+        return $remonlineClientRequestData;
     }
 
 }

@@ -33,12 +33,11 @@ class ComagicWebhookController extends Controller
         // Call the getOrders method with the client phone number
         $response = $rem->getOrders(['client_phones' => [$contactPhoneNumber]]);
 
-        // Parse the response and extract the id_label
         $data = $response['data'];
 
-        $msg = "Звонок по заказам:\n\n";
-
         if (empty($data)) return response('No orders', 200);
+
+        $msg = "Звонок по заказам:\n\n";
 
         foreach ($data as $order) {
 
