@@ -26,27 +26,63 @@ class ComagicWebhookController extends Controller
             return response('Employee not found', 404);
         }
 
+        $telegramController = new TelegramController();
         // Create an instance of the RemonlineApi
         $apiToken = env('REMONLINE_TOKEN'); // Ensure you have the API token in your .env file
         $rem = new RemonlineApi($apiToken);
 
         // Call the getOrders method with the client phone number
-        $response = $rem->getOrders(['client_phones' => [$contactPhoneNumber]]);
+        $response = $rem->getOrders(['client_phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
 
-        $data = $response['data'];
+        $orders = $response['data'];
 
-        if (empty($data)) return response('No orders', 200);
+        $msgData = [];
+        if (empty($orders)) {
 
-        $msg = "Звонок по заказам:\n\n";
-
-        foreach ($data as $order) {
-
-            $id = $order['id'];
-            $label = $order['id_label'];
-            $status = $order['status']['name'];
-            $msg .= "<a href='https://web.remonline.app/orders/table/$id'>$label</a> - $status\n";
+            $response = $rem->getClients(['phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
+            $clients = $response['data'];
+            if (empty($clients)) {
+                $telegramController->sendMessage($employee->chat_id, 'Клиент по номеру не найден');
+                return response('No clients', 200);
+            }
+            foreach ($clients as $client) {
+                $clientId = $client['id'];
+                $msgData[$clientId]['name'] = $client['name'];
+                $msgData[$clientId]['orders'] = [];
+            }
         }
-        $telegramController = new TelegramController();
+
+
+        foreach ($orders as $order) {
+            $clientId = $order['client']['id'];
+            if (!isset($msgData[$clientId])) {
+                $msgData[$clientId]['name'] = $order['client']['name'];
+                $msgData[$clientId]['orders'] = [];
+            }
+            $msgData[$clientId]['orders'][] = $order;
+        }
+
+        $msg = "";
+        foreach ($msgData as $clientId => $client) {
+            $viewClientUrl = route('client.show', $clientId);
+            $msg .= "Клиент: <a href='$viewClientUrl'>${client['name']}</a>\n";
+
+            if (empty($client['orders'])) {
+                $msg .= "Заказов нет\n";
+            } else {
+                foreach ($client['orders'] as $order) {
+                    $id = $order['id'];
+                    $label = $order['id_label'];
+                    $status = $order['status']['name'];
+                    $msg .= "<a href='https://web.remonline.app/orders/table/$id'>$label</a> - $status\n";
+                }
+            }
+
+            $newOrderUrl = route('client.order.create', $clientId);
+
+            $msg .= "<a href='$newOrderUrl'>Создать новый заказ</a>\n\n";
+        }
+
         $telegramController->sendMessage($employee->chat_id, $msg);
 
         return response('OK', 200);
