@@ -426,6 +426,7 @@ const savePreset = () => {
     let newPreset = {
         name: presetName.value,
         settings: {
+            orderSelection: orderSelection.value,
             statuses: statusIds,
             types: typeIds,
             colState: colState,
@@ -457,6 +458,7 @@ const changePreset = (selectedOption, id) => {
     console.log(selectedOption);
     selectedPresetId.value = selectedOption.id;
     console.log(selectedPresetId.value);
+    orderSelection.value = selectedOption.settings.orderSelection;
     const presetStatuses = selectedOption.settings.statuses;
     const presetTypes = selectedOption.settings.types;
     const colState = selectedOption.settings.colState;
