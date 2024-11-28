@@ -47,4 +47,13 @@ class ReportPresetController extends Controller
             'data' => $preset
         ], 201);
     }
+
+    public function delete(Request $request): JsonResponse
+    {
+        ReportPreset::destroy($request->id);
+
+        return response()->json([
+            'success' => true,
+        ], 200);
+    }
 }

@@ -276,7 +276,6 @@ const AG_GRID_LOCALE_RU = {
     ariaSearchFilterValues: 'Поиск значений по фильтру',
 }
 
-// Register Ag-Grid component
 function roundedAvgFunc(params) {
     const values = params.values || [];
     if (values.length === 0) return 0;
@@ -299,9 +298,12 @@ const props = defineProps({
 
 const gridApi = ref(null);
 const presets = ref(props.presets);
+const selectedPreset = ref({});
+const selectedPresetId = ref(null);
 const selectedPresetName = ref('');
 const loadButtonText = ref('Загрузить заказы');
 
+const orderSelection = ref('closed');
 const selectedTypes = ref([]);
 const selectedStatuses = ref([]);
 const startDate = ref("");
@@ -327,7 +329,15 @@ const columnDefs = ref([
     {
         headerName: "Заказ",
         field: "label",
-        cellRenderer: params => `<a href="https://web.remonline.app/orders/table/${params.node.data.id}" target="_blank">${params.value}</a>`
+        cellRenderer: params => {
+            if (params.node.data) {
+                // Render the link only for non-grouped rows
+                return `<a href="https://web.remonline.app/orders/table/${params.node.data.id}" target="_blank">${params.value}</a>`;
+            } else {
+                // Return the default value for grouped rows
+                return params.value || '';
+            }
+        }
     },
     {headerName: "Стоимость заказа", field: "revenue"},
     {headerName: "Себестоимость материалов", field: "costParts"},
@@ -344,7 +354,6 @@ const columnDefs = ref([
     {headerName: "Согласовальщик", field: "soglas"},
 ]);
 
-// Grid options
 const gridOptions = ref({
     cellSelection: true,
     localeText: AG_GRID_LOCALE_RU,
@@ -368,14 +377,12 @@ const onGridReady = (params) => {
     // columnApi.value = params.columnApi;
 };
 
-
-// Fetch data on button click
 const loadData = () => {
     const statusIds = selectedStatuses.value.map((status) => status.id);
     const typeIds = selectedTypes.value.map((type) => type.id);
 
-    if (!startDate || !endDate) {
-        alert("Please select both start and end dates.");
+    if ((orderSelection.value === 'closed') && (!startDate || !endDate)) {
+        alert("Выберите даты или переключите выбор заказов на открытые.");
         return;
     }
 
@@ -386,6 +393,7 @@ const loadData = () => {
 
         axios.get(fetchUrl, {
             params: {
+                orderSelection: orderSelection.value,
                 startDate: startDate.value,
                 endDate: endDate.value,
                 types: typeIds,
@@ -415,7 +423,7 @@ const savePreset = () => {
     // // localStorage.setObject('sortState', gridOptions.api.getSortModel());
     // localStorage.setObject('filterState', gridOptions.api.getFilterModel());
 
-    const newPreset = {
+    let newPreset = {
         name: presetName.value,
         settings: {
             statuses: statusIds,
@@ -426,29 +434,34 @@ const savePreset = () => {
     }
 
 
-    presets.value.push(newPreset);
-
-    // settings = JSON.stringify(settings);
-
     try {
-        const savePresetUrl = route('report.preset.store')
+        const savePresetUrl = route('report.preset.store');
 
         axios.post(savePresetUrl, newPreset)
-        // const data = await response.json();
-        // rowData.value = data;
+            .then(response => {
+                // Ensure that the response contains data and id
+                if (response.data.data) {
+                    presets.value.push(response.data.data);
+                } else {
+                    console.error('ID not found in the response:', response.data);
+                }
+            });
+
+
     } catch (error) {
         console.error("Error loading data:", error);
     }
 };
 
-const presetChange = (selectedOption, id) => {
+const changePreset = (selectedOption, id) => {
     console.log(selectedOption);
+    selectedPresetId.value = selectedOption.id;
+    console.log(selectedPresetId.value);
     const presetStatuses = selectedOption.settings.statuses;
     const presetTypes = selectedOption.settings.types;
     const colState = selectedOption.settings.colState;
     const filterState = selectedOption.settings.filterState;
     selectedPresetName.value = selectedOption.name;
-    console.log(selectedOption.name);
     selectedStatuses.value = presetStatuses;
     selectedTypes.value = presetTypes;
 
@@ -458,22 +471,51 @@ const presetChange = (selectedOption, id) => {
     });
     gridApi.value.setFilterModel(filterState);
 };
+
+const deletePreset = () => {
+    const deletePresetUrl = route('report.preset.delete', selectedPresetId.value);
+
+    axios.delete(deletePresetUrl)
+        .then(() => {
+            // On successful deletion, remove the preset from localPresets
+            presets.value = presets.value.filter(p => p.id !== selectedPresetId.value);
+
+            selectedPreset.value = null;
+        })
+}
 </script>
 
 <template>
     <div class="container-fluid py-4">
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="form-group form-inline">
-                    <label class="form-label" for="start-date">Начало периода:</label>
-                    <input id="start-date" v-model="startDate" class="form-control" type="date"/>
-                </div>
-            </div>
+        <div class="row mb-4 ">
 
             <div class="col-md-3">
-                <label class="form-label" for="end-date">Конец периода:</label>
-                <input id="end-date" v-model="endDate" class="form-control" type="date"/>
+                <div class="form-check">
+                    <input id="closed" v-model="orderSelection" checked class="form-check-input" type="radio"
+                           value="closed"/>
+                    <label class="form-check-label" for="closed">Закрытые</label>
+                </div>
+                <div class="form-check">
+                    <input id="open" v-model="orderSelection" class="form-check-input" type="radio" value="open"/>
+                    <label class="form-check-label" for="open">Открытые</label>
+                </div>
             </div>
+            <template v-if="orderSelection === 'closed'">
+                <div class="col-md-3">
+                    <div class="form-group form-inline">
+                        <label class="form-label" for="start-date">Начало периода:</label>
+                        <input id="start-date" v-model="startDate" class="form-control" type="date"/>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label" for="end-date">Конец периода:</label>
+                    <input id="end-date" v-model="endDate" class="form-control" type="date"/>
+                </div>
+
+            </template>
+        </div>
+        <div class="row mb-4">
 
             <div class="col-md-3">
 
@@ -509,11 +551,14 @@ const presetChange = (selectedOption, id) => {
         </div>
         <div class="row mb-4">
             <div class="col-md-3">
-                <multiselect :clear-on-select="false" :close-on-select="true" :options="$page.props.presets"
+                <multiselect v-model="selectedPreset"
+                             :clear-on-select="false"
+                             :close-on-select="true"
+                             :options="presets"
                              :preselect-first="false"
                              :preserve-search="true" label="name" placeholder="Пресеты" track-by="id"
-                             @select="presetChange">
-                    <span class="multiselect__single"><strong>{{ selectedPresetName }}</strong></span>
+                             @select="changePreset">
+                    <template slot="singleLabel" slot-scope="{ option }"><strong>{{ option.name }}</strong></template>
                 </multiselect>
             </div>
             <div class="col-md-3 d-flex align-items-end">
@@ -522,6 +567,9 @@ const presetChange = (selectedOption, id) => {
 
             <div class="col-md-3 d-flex align-items-end">
                 <button class="btn btn-primary w-100" @click="savePreset">Сохранить пресет</button>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button class="btn btn-danger w-100" @click="deletePreset">Удалить пресет</button>
             </div>
 
         </div>

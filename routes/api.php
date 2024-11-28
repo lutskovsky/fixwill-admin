@@ -27,4 +27,5 @@ Route::get('/report-presets', [ReportPresetController::class, 'index']);
 
 // Route to store a new report preset
 Route::post('/report-presets', [ReportPresetController::class, 'store'])->name('report.preset.store');
+Route::delete('/report-presets/{id}', [ReportPresetController::class, 'delete'])->name('report.preset.delete');
 

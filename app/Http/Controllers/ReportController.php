@@ -32,34 +32,42 @@ class ReportController extends Controller
     public function fetchOrders(Request $request)
     {
         $rem = new RemonlineApi();
+        $orderSelection = $request->query('orderSelection');
         $startDate = $request->query('startDate');
         $endDate = $request->query('endDate');
         $types = $request->query('types');
         $statuses = $request->query('statuses');
-//        dd($request);
         $start = (new DateTime($startDate, new DateTimeZone('Europe/Moscow')))->getTimestamp() * 1000;
         $end = (new DateTime($endDate, new DateTimeZone('Europe/Moscow')))->modify('+1 day')->getTimestamp() * 1000;
 
+        $query = [
+            'page' => 1,
+            'types' => $types,
+            'statuses' => $statuses
+        ];
+
+        $onlyClosed = ($orderSelection === 'closed');
+        if ($onlyClosed) {
+            $query['closed_at'] = [$start, $end];
+        }
+
         $orders = array();
-        $page = 1;
         do {
-            $response = $rem->getOrders([
-                'page' => $page,
-                'types' => $types,
-                'statuses' => $statuses,
-                'closed_at' => [$start, $end]
-            ]);
-
-
+            $response = $rem->getOrders($query);
             $orders = array_merge($orders, $response['data']);
-            $page++;
+            $query['page']++;
         } while (count($orders) < $response['count']);
 
         $out = [];
         foreach ($orders as $order) {
-            $closeDate = (new DateTime('now', new DateTimeZone("Europe/Moscow")))
-                ->setTimestamp($order['closed_at'] / 1000)
-                ->format('d.m.Y');
+            if (isset($order['closed_at'])) {
+
+                $closeDate = (new DateTime('now', new DateTimeZone("Europe/Moscow")))
+                    ->setTimestamp($order['closed_at'] / 1000)
+                    ->format('d.m.Y');
+            } else {
+                $closeDate = null;
+            }
 
             $revenue = $order['price'];
 
