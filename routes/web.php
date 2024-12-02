@@ -30,7 +30,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/client/search', [OrderClientController::class, 'searchForm'])->name('client.search.form');
     Route::post('/client/search', [OrderClientController::class, 'search'])->name('client.search');
 
-    Route::get('/client/order/{orderLabel}', [OrderClientController::class, 'getClientByOrderLabel'])->name('client.order.show');
     Route::get('/client/{clientId}', [OrderClientController::class, 'getClientById'])->name('client.show');
 
     Route::post('/client/{clientId}/order/create', [OrderClientController::class, 'createOrder'])->name('client.order.create');
@@ -45,7 +44,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/report', [ReportController::class, 'show'])
         ->name('report.show')
         ->middleware('can:view reports');
+
 });
 
-
 require __DIR__ . '/auth.php';
+
+Route::get('/client/order/{orderLabel}', [OrderClientController::class, 'getClientByOrderLabel'])
+    ->name('client.order.show')
+    ->where('orderLabel', '.*')
+    ->middleware('auth');
+
