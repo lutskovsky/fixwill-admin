@@ -31,13 +31,6 @@ function addClientLink(div) {
             clientLink.classList.add('client-link');
             clientLink.style.marginLeft = '10px'; // Add some spacing
 
-            //
-            // // Add click event listener
-            // clientLink.addEventListener('click', function(event) {
-            //     event.preventDefault();
-            //     fetchClientInfo(orderNumber);
-            // });
-
             // Insert the link after the div
             div.parentNode.insertBefore(clientLink, div.nextSibling);
         }
@@ -45,17 +38,35 @@ function addClientLink(div) {
 }
 
 
+const orderLabelObserver = new MutationObserver((mutationsList) => {
+    for (const mutation of mutationsList) {
+        if (mutation.type === 'characterData') {
+            addClientLink(mutation.target.parentNode);
+        }
+    }
+});
 
 // Create a MutationObserver to watch for changes in the DOM
 const observer = new MutationObserver((mutationsList) => {
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
             mutation.addedNodes.forEach(node => {
-                processNode(node);
+
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const divs = node.querySelectorAll('div[title^="Заказ"]');
+                    divs.forEach(div => {
+                        orderLabelObserver.observe(div, {
+                            characterData: true,
+                            childList: true,
+                            subtree: true
+                        })
+                    });
+                }
             });
         }
     }
 });
+
 
 // Start observing the document body for child list changes
 observer.observe(document.body, {
