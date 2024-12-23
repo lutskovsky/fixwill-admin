@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
 use App\Models\User;
+use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
 
 class ComagicWebhookController extends Controller
@@ -26,7 +27,10 @@ class ComagicWebhookController extends Controller
             return response('Employee not found', 404);
         }
 
-        $telegramController = new TelegramController();
+        $token = config('telegramBots.call_notifications');
+        // Or: $token = env('TELEGRAM_BOT_TOKEN_CALL_NOTIFICATIONS');
+        $botService = new TelegramBotService($token);
+
         // Create an instance of the RemonlineApi
         $apiToken = env('REMONLINE_TOKEN'); // Ensure you have the API token in your .env file
         $rem = new RemonlineApi($apiToken);
@@ -42,7 +46,7 @@ class ComagicWebhookController extends Controller
             $response = $rem->getClients(['phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
             $clients = $response['data'];
             if (empty($clients)) {
-                $telegramController->sendMessage($employee->chat_id, 'Клиент по номеру не найден');
+                $botService->sendMessage($employee->chat_id, 'Клиент по номеру не найден');
                 return response('No clients', 200);
             }
             foreach ($clients as $client) {
@@ -83,7 +87,7 @@ class ComagicWebhookController extends Controller
             $msg .= "<a href='$newOrderUrl'>Создать новый заказ</a>\n\n";
         }
 
-        $telegramController->sendMessage($employee->chat_id, $msg);
+        $botService->sendMessage($employee->chat_id, $msg);
 
         return response('OK', 200);
     }

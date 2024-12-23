@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Integrations\RemonlineApi;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
@@ -242,6 +243,15 @@ class UserCrudController extends CrudController
                 'priority' => 10,
             ],
             [
+                'label' => "Имя курьера",
+                'type' => 'select_from_array',
+                'name' => 'remonline_courier',
+//                'attribute' => 'title', // foreign key attribute that is shown to user
+//                'model' => "App\Models\RemonlineCourier", // foreign key model
+                'allows_null' => true, // Optional: Allow no selection
+                'options' => $this->getCouriers(),
+            ],
+            [
                 'label' => "Виртуальные номера",
                 'type' => 'select_multiple',
                 'name' => 'virtualNumbers', // the method on your model that defines the relationship
@@ -289,5 +299,17 @@ class UserCrudController extends CrudController
         }
 
 
+    }
+
+    private function getCouriers()
+    {
+        $rem = new RemonlineApi();
+        $data = $rem->getBookItems(483321)['data'];
+
+        $output = [];
+        foreach ($data as $item) {
+            $output[$item['title']] = $item['title'];
+        }
+        return $output;
     }
 }

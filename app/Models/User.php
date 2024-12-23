@@ -27,6 +27,7 @@ class User extends Authenticatable
         'internal_phone',
         'tg_login',
         'chat_id',
+        'remonline_courier'
     ];
 
     /**
@@ -52,6 +53,10 @@ class User extends Authenticatable
         ];
     }
 
+//    public function remonlineCourier(): HasOne
+//    {
+//        return $this->hasOne(RemonlineCourier::class);
+//    }
 
     public function virtualNumbers()
     {
