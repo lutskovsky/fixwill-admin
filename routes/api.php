@@ -5,6 +5,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPresetController;
+use App\Http\Controllers\TelegramBots\CallNotificationsBotController;
+use App\Http\Controllers\TelegramBots\LogisticsBotController;
 use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,9 @@ Route::get('/user', function (Request $request) {
 Route::prefix('webhook')->group(function () {
     Route::post('telegram', [TelegramController::class, 'handle']);
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
+
+    Route::post('/telegram/call_notifications', [CallNotificationsBotController::class, 'handle']);
+    Route::post('/telegram/logistics', [LogisticsBotController::class, 'handle']);
 });
 
 Route::get('/employee/{remonline_login}/virtual-numbers', [EmployeeController::class, 'getVirtualNumbers']);

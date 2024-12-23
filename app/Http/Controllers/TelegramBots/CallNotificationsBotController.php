@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Telegram;
+namespace App\Http\Controllers\TelegramBots;
 
+use App\Http\Controllers\Controller;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
 
