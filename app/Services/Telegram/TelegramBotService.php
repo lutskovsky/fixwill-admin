@@ -47,10 +47,14 @@ class TelegramBotService
         ];
 
         if ($replyMarkup) {
-            $data['reply_markup'] = json_encode($replyMarkup);
+            $data['reply_markup'] = $replyMarkup;
         }
 
         $response = Http::post($url, $data);
+
+//        if ($replyMarkup) {
+//            $this->sendMessage($chatId, print_r($data, true));
+//        }
 
         return $response->successful();
     }

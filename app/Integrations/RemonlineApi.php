@@ -143,6 +143,11 @@ class RemonlineApi
         return $this->apiCall('order/', $data);
     }
 
+    public function getOrderById($orderId)
+    {
+        return $this->apiCall('order/' . $orderId);
+    }
+
     public function getClients($data = [])
     {
         return $this->apiCall('clients/', $data);

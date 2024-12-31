@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\ComagicClient;
+use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -13,14 +14,12 @@ class EmployeeCallController extends Controller
     {
         $phoneText = $request->json('phoneText');
         $encryptedPhone = $request->json('encryptedPhone');
+
         if (str_contains($phoneText, '*')) {
             $contactPhoneNumber = Crypt::decryptString($encryptedPhone);
         } else {
             $contactPhoneNumber = $phoneText;
         }
-
-//        $contactPhoneNumber = $request->json('phone');
-
 
         $virtualNumber = $request->json('virtualNumber');
 
@@ -78,6 +77,55 @@ class EmployeeCallController extends Controller
 //        dd($callParams);
         $call = $client->call('call', 'start.employee_call', $callParams);
 //        Log::channel('comagic')->info(print_r($call));
+        return response('OK', 200);
+    }
+
+    public static function call($contactPhoneNumber, $chatId)
+    {
+        $virtualNumber = '74954893455';
+
+
+        $user = User::where('chat_id', $chatId)->first();
+
+        if (!$user) {
+            // Employee not found
+            return response()->json(['message' => 'Пользователь не вошёл в систему'], 404);
+        }
+
+        // Get the employee's virtual numbers
+        $extension = $user->internal_phone;
+
+
+        // Validate the required parameters
+        if (empty($contactPhoneNumber)) {
+            return response('Invalid parameters', 400);
+        }
+
+        $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
+
+        $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
+
+        $call = $client->call('data', 'get.employees');
+        $employees = $call['result']['data'];
+        $id = 0;
+        foreach ($employees as $employee) {
+            if (!empty($employee['extension']) && $employee['extension']['extension_phone_number'] == $extension) {
+                $id = $employee['id'];
+                break;
+            }
+        }
+
+        $callParams = [
+            'first_call' => 'employee',
+            'virtual_phone_number' => ($virtualNumber ?? '74954893455'),
+            'contact' => $contactPhoneNumber,
+            'employee' => [
+                'id' => $id
+            ]
+        ];
+
+        $call = $client->call('call', 'start.employee_call', $callParams);
+
         return response('OK', 200);
     }
 }

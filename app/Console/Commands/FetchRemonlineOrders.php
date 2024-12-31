@@ -9,16 +9,7 @@ use Illuminate\Console\Command;
 
 class FetchRemonlineOrders extends Command
 {
-/**
-     * The name of the custom field in the order array that contains courier info.
-     * Adjust this constant to the actual field name from the Remonline API.
-     */
     const COURIER_FIELD = 'f1482267';
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'remonline:fetch-orders';
     /**
      * The console command description.
@@ -41,7 +32,7 @@ class FetchRemonlineOrders extends Command
         $orders = [];
         $page = 0;
         while (true) {
-            $response = $remonline->getOrders(['statuses' => [323217], 'page' => ++$page]);
+            $response = $remonline->getOrders(['statuses' => [1420398], 'page' => ++$page]);
             if (!$response['success']) break;
 
             $orders = array_merge($orders, $response['data']);
@@ -63,10 +54,11 @@ class FetchRemonlineOrders extends Command
             // Prepare data to insert/update
             $data = [
                 'user_id' => $user->id,
-                'direction' => '',
+                'order_label' => $order['id_label'],
+                'direction' => 'привоз',
                 'courier' => $courierName,
                 'arrival_time' => null,
-                'status' => 'pending',
+                'status' => 'Назначен',
             ];
 
             // 3. Update or create the CourierTrip
