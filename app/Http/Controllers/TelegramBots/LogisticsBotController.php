@@ -288,6 +288,7 @@ class LogisticsBotController extends Controller
         }
 
         if (isset($msg)) {
+            $msg .= "\n/order_{$trip->order_id}";
             $this->botService->sendMessage($chatId, $msg);
             if ($chatId !== self::MANAGERS_CHAT) {
                 $this->botService->sendMessage(self::MANAGERS_CHAT, $msg);
