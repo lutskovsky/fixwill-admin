@@ -56,10 +56,12 @@ class LogisticsBotController extends Controller
                 return response('OK', 200);
             }
 
-            $courier = Courier::where('chat_id', $chatId)->first();
-            if (!$courier) {
-                $this->botService->sendMessage($chatId, "Не знаю, кто вы, пожалуйста, отправьте /start и поделитесь номером.");
-                return response('OK', 200);
+            if ($chatId) {
+                $courier = Courier::where('chat_id', $chatId)->first();
+                if (!$courier) {
+                    $this->botService->sendMessage($chatId, "Не знаю, кто вы, пожалуйста, отправьте /start и поделитесь номером.");
+                    return response('OK', 200);
+                }
             }
         }
 
