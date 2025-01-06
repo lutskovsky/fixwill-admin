@@ -59,18 +59,27 @@ class FetchRemonlineOrders extends Command
 
             $this->info("Order {$order['id']} {$courierName}");
             $data = [
-                'courier_id' => $courier->id ?? null,
                 'order_label' => $order['id_label'],
                 'direction' => $direction,
                 'courier' => $courierName,
-                'arrival_time' => null,
-                'status' => 'Назначен',
             ];
 
-            CourierTrip::updateOrCreate(
-                ['order_id' => $order['id']],
-                $data
-            );
+            $existingTrip = CourierTrip::where('order_id', $order['id'])->first();
+
+            if ($existingTrip) {
+                if (!$existingTrip->status) {
+                    $existingTrip->status = 'Назначен';
+                }
+                if (!$existingTrip->arrival_time) {
+                    $existingTrip->arrival_time = null;
+                }
+
+                $existingTrip->update($data);
+            } else {
+                $data['courier_id'] = $courier->id ?? null;
+                $data['status'] = 'Назначен';
+                CourierTrip::create($data);
+            }
 
             $this->info("Order {$order['id']} synced successfully.");
         }

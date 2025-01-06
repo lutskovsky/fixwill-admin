@@ -173,19 +173,6 @@ class LogisticsBotController extends Controller
         $text .= "Метро: {$order['client']['custom_fields']['f3452769']}\n";
         $text .= "Оборудование: {$order['custom_fields']['f1070009']} {$order['custom_fields']['f1070012']}\n";
 
-
-        $phones = array_map(
-            fn($phone) => [[
-                'text' => '📞 ' . substr($phone, 0, 7) . '****',
-                'callback_data' => "call:" . $phone
-//                'callback_data' => "call:" . Crypt::encryptString($phone)
-            ]],
-            $order['client']['phone']);
-
-
-//        $this->botService->sendMessage($chatId, print_r($phones,true));
-
-
         $inlineKeyboard = [
             [
                 ['text' => 'Статус', 'callback_data' => "change_status:{$trip->order_id}"],
@@ -193,7 +180,15 @@ class LogisticsBotController extends Controller
             ]
         ];
 
-        $inlineKeyboard = array_merge($inlineKeyboard, $phones);
+        if ($this->mode == 'courier') {
+            $phones = array_map(
+                fn($phone) => [[
+                    'text' => '📞 ' . substr($phone, 0, 7) . '****',
+                    'callback_data' => "call:" . $phone
+                ]],
+                $order['client']['phone']);
+            $inlineKeyboard = array_merge($inlineKeyboard, $phones);
+        }
 
         $replyMarkup = ['inline_keyboard' => $inlineKeyboard];
         $this->botService->sendMessage($chatId, $text, $replyMarkup);
@@ -252,7 +247,7 @@ class LogisticsBotController extends Controller
         }
 
         $phone = $parts[1];
-        EmployeeCallController::call($phone, $chatId);
+        EmployeeCallController::courierCall($phone, $chatId);
     }
 
     protected function showStatusOptions($chatId, $orderId, $direction)

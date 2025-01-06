@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\ComagicClient;
-use App\Models\User;
+use App\Models\Courier;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -80,20 +80,20 @@ class EmployeeCallController extends Controller
         return response('OK', 200);
     }
 
-    public static function call($contactPhoneNumber, $chatId)
+    public static function courierCall($contactPhoneNumber, $chatId)
     {
         $virtualNumber = '74954893455';
 
 
-        $user = User::where('chat_id', $chatId)->first();
+        $courier = Courier::where('chat_id', $chatId)->first();
 
-        if (!$user) {
+        if (!$courier) {
             // Employee not found
             return response()->json(['message' => 'Пользователь не вошёл в систему'], 404);
         }
 
         // Get the employee's virtual numbers
-        $extension = $user->internal_phone;
+        $extension = $courier->internal_phone;
 
 
         // Validate the required parameters
