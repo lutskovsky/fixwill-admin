@@ -12,8 +12,6 @@ return new class extends Migration {
     {
         Schema::table('user_virtual_number', function (Blueprint $table) {
 
-            $table->dropForeign(['user_id']);
-
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
@@ -25,8 +23,6 @@ return new class extends Migration {
     {
         Schema::table('user_virtual_number', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
-
-            $table->foreign('user_id')->references('id')->on('employees')->onDelete('cascade');
         });
     }
 };

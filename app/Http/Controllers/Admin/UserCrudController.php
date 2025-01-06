@@ -12,7 +12,6 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\PermissionManager\app\Http\Requests\UserStoreCrudRequest as StoreRequest;
 use Backpack\PermissionManager\app\Http\Requests\UserUpdateCrudRequest as UpdateRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserCrudController extends CrudController
@@ -242,15 +241,15 @@ class UserCrudController extends CrudController
                 'label' => 'Номер телефона аккаунта Telegram',
                 'priority' => 10,
             ],
-            [
-                'label' => "Имя курьера",
-                'type' => 'select_from_array',
-                'name' => 'remonline_courier',
-//                'attribute' => 'title', // foreign key attribute that is shown to user
-//                'model' => "App\Models\RemonlineCourier", // foreign key model
-                'allows_null' => true, // Optional: Allow no selection
-                'options' => $this->getCouriers(),
-            ],
+//            [
+//                'label' => "Имя курьера",
+//                'type' => 'select_from_array',
+//                'name' => 'remonline_courier',
+////                'attribute' => 'title', // foreign key attribute that is shown to user
+////                'model' => "App\Models\RemonlineCourier", // foreign key model
+//                'allows_null' => true, // Optional: Allow no selection
+//                'options' => $this->getCouriers(),
+//            ],
             [
                 'label' => "Виртуальные номера",
                 'type' => 'select_multiple',
@@ -264,39 +263,39 @@ class UserCrudController extends CrudController
 
         ]);
 
-        if (Auth::user()->hasRole('superadmin')) {
-            $this->crud->addFields([
-                [
-                    // two interconnected entities
-                    'label' => trans('backpack::permissionmanager.user_role_permission'),
-                    'field_unique_name' => 'user_role_permission',
-                    'type' => 'checklist_dependency',
-                    'name' => 'roles,permissions',
-                    'subfields' => [
-                        'primary' => [
-                            'label' => trans('backpack::permissionmanager.roles'),
-                            'name' => 'roles', // the method that defines the relationship in your Model
-                            'entity' => 'roles', // the method that defines the relationship in your Model
-                            'entity_secondary' => 'permissions', // the method that defines the relationship in your Model
-                            'attribute' => 'name', // foreign key attribute that is shown to user
-                            'model' => config('permission.models.role'), // foreign key model
-                            'pivot' => true, // on create&update, do you need to add/delete pivot table entries?]
-                            'number_columns' => 3, //can be 1,2,3,4,6
-                        ],
-                        'secondary' => [
-                            'label' => mb_ucfirst(trans('backpack::permissionmanager.permission_plural')),
-                            'name' => 'permissions', // the method that defines the relationship in your Model
-                            'entity' => 'permissions', // the method that defines the relationship in your Model
-                            'entity_primary' => 'roles', // the method that defines the relationship in your Model
-                            'attribute' => 'name', // foreign key attribute that is shown to user
-                            'model' => config('permission.models.permission'), // foreign key model
-                            'pivot' => true, // on create&update, do you need to add/delete pivot table entries?]
-                            'number_columns' => 3, //can be 1,2,3,4,6
-                        ],
-                    ],
-                ],
-            ]);
-        }
+//        if (Auth::user()->hasRole('superadmin')) {
+//            $this->crud->addFields([
+//                [
+//                    // two interconnected entities
+//                    'label' => trans('backpack::permissionmanager.user_role_permission'),
+//                    'field_unique_name' => 'user_role_permission',
+//                    'type' => 'checklist_dependency',
+//                    'name' => 'roles,permissions',
+//                    'subfields' => [
+//                        'primary' => [
+//                            'label' => trans('backpack::permissionmanager.roles'),
+//                            'name' => 'roles', // the method that defines the relationship in your Model
+//                            'entity' => 'roles', // the method that defines the relationship in your Model
+//                            'entity_secondary' => 'permissions', // the method that defines the relationship in your Model
+//                            'attribute' => 'name', // foreign key attribute that is shown to user
+//                            'model' => config('permission.models.role'), // foreign key model
+//                            'pivot' => true, // on create&update, do you need to add/delete pivot table entries?]
+//                            'number_columns' => 3, //can be 1,2,3,4,6
+//                        ],
+//                        'secondary' => [
+//                            'label' => mb_ucfirst(trans('backpack::permissionmanager.permission_plural')),
+//                            'name' => 'permissions', // the method that defines the relationship in your Model
+//                            'entity' => 'permissions', // the method that defines the relationship in your Model
+//                            'entity_primary' => 'roles', // the method that defines the relationship in your Model
+//                            'attribute' => 'name', // foreign key attribute that is shown to user
+//                            'model' => config('permission.models.permission'), // foreign key model
+//                            'pivot' => true, // on create&update, do you need to add/delete pivot table entries?]
+//                            'number_columns' => 3, //can be 1,2,3,4,6
+//                        ],
+//                    ],
+//                ],
+//            ]);
+//        }
 
 
     }

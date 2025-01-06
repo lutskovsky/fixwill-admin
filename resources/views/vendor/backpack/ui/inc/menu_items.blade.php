@@ -5,3 +5,5 @@
 
 <x-backpack::menu-item title="Виртуальные номера" icon="la la-tty" :link="backpack_url('virtual-number')" />
 
+
+<x-backpack::menu-item title="Курьеры" icon="la la-truck-pickup" :link="backpack_url('courier')"/>

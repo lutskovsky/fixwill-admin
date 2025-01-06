@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UserUpdateCrudRequest extends FormRequest
+class CourierRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,12 +24,32 @@ class UserUpdateCrudRequest extends FormRequest
      */
     public function rules()
     {
-        $id = $this->get('id') ?? request()->route('id');
-
         return [
-            'username' => 'required|unique:' . config('backpack.permissionmanager.models.user', 'users') . ',username,' . $id,
-            'name' => 'required',
-            'password' => 'confirmed',
+            // 'name' => 'required|min:5|max:255'
+        ];
+    }
+
+    /**
+     * Get the validation attributes that apply to the request.
+     *
+     * @return array
+     */
+    public function attributes()
+    {
+        return [
+            //
+        ];
+    }
+
+    /**
+     * Get the validation messages that apply to the request.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            //
         ];
     }
 }

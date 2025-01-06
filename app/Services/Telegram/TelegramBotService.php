@@ -2,7 +2,6 @@
 
 namespace App\Services\Telegram;
 
-use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
 class TelegramBotService
@@ -62,13 +61,15 @@ class TelegramBotService
     /**
      * Process phone number: register the user’s Telegram chat_id by matching phone number to tg_login.
      */
-    public function processPhoneNumber(string $phoneNumber, int|string $chatId): bool
+    public function processPhoneNumber(string $phoneNumber, int|string $chatId, string $model = 'User'): bool
     {
         // Strip non-digits from the phone number
         $normalizedPhone = preg_replace('/\D/', '', $phoneNumber);
 
+        $model = "App\Models\\" . $model;
+
         // Attempt to find a user with matching tg_login
-        $user = User::where('tg_login', $normalizedPhone)->first();
+        $user = $model::where('tg_login', $normalizedPhone)->first();
 
         if ($user) {
             $user->chat_id = $chatId;

@@ -3,13 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Integrations\RemonlineApi;
+use App\Models\Courier;
 use App\Models\CourierTrip;
-use App\Models\User;
 use Illuminate\Console\Command;
 
 class FetchRemonlineOrders extends Command
 {
-    const COURIER_FIELD = 'f1482267';
+    const COURIER_FIELD_PRIVOZ = 'f1482267';
+    const COURIER_FIELD_OTVOZ = 'f1569113';
     protected $signature = 'remonline:fetch-orders';
     /**
      * The console command description.
@@ -32,36 +33,40 @@ class FetchRemonlineOrders extends Command
         $orders = [];
         $page = 0;
         while (true) {
-            $response = $remonline->getOrders(['statuses' => [1420398], 'page' => ++$page]);
+            $response = $remonline->getOrders(['statuses' => [327089, 435390, 435391, 1467781,], 'page' => ++$page]);
             if (!$response['success']) break;
 
             $orders = array_merge($orders, $response['data']);
         }
 
-        // 2. Process each order
-        foreach ($orders as $order) {
-            // Extract the courier name from the order custom fields
-            $courierName = $order['custom_fields'][self::COURIER_FIELD] ?? null;
-            if (!$courierName) continue;
+        $remonlineOrderIds = array_column($orders, 'id');
 
-            $user = User::where('remonline_courier', $courierName)->first();
-            if (!$user) {
-                $this->warn("No user found for courier: {$courierName}. Skipping order_id: {$order['id']}.");
-                continue;
+        foreach ($orders as $order) {
+            if ($order['status']['id'] == 435391) {
+                $direction = 'отвоз';
+                $courierName = $order['custom_fields'][self::COURIER_FIELD_OTVOZ] ?? '';
+            } else {
+                $direction = 'привоз';
+                $courierName = $order['custom_fields'][self::COURIER_FIELD_PRIVOZ] ?? '';
             }
 
+            $courier = Courier::where('name', $courierName)->first();
+
+//            if (!$courier) {
+//                $this->warn("No user found for courier: {$courierName}. Skipping order_id: {$order['id']}.");
+//                continue;
+//            }
+
             $this->info("Order {$order['id']} {$courierName}");
-            // Prepare data to insert/update
             $data = [
-                'user_id' => $user->id,
+                'courier_id' => $courier->id ?? null,
                 'order_label' => $order['id_label'],
-                'direction' => 'привоз',
+                'direction' => $direction,
                 'courier' => $courierName,
                 'arrival_time' => null,
                 'status' => 'Назначен',
             ];
 
-            // 3. Update or create the CourierTrip
             CourierTrip::updateOrCreate(
                 ['order_id' => $order['id']],
                 $data
@@ -69,6 +74,8 @@ class FetchRemonlineOrders extends Command
 
             $this->info("Order {$order['id']} synced successfully.");
         }
+
+        CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->delete();
 
         $this->info('All orders synced.');
         return 0;

@@ -12,7 +12,7 @@ class CourierTrip extends Model
     protected $table = 'courier_trips';
 
     protected $fillable = [
-        'user_id',
+        'courier_id',
         'direction',
         'courier',
         'order_id',
@@ -22,10 +22,11 @@ class CourierTrip extends Model
     ];
 
     /**
-     * Get the user that owns the CourierTrip.
+     * Get the courier that owns the CourierTrip.
      */
-    public function user()
+    public function courier()
     {
-        return $this->belongsTo(User::class);
+        // references the 'courier_id' column in 'courier_trips'
+        return $this->belongsTo(Courier::class, 'courier_id');
     }
 }

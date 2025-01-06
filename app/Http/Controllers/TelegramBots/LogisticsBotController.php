@@ -5,8 +5,8 @@ namespace App\Http\Controllers\TelegramBots;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EmployeeCallController;
 use App\Integrations\RemonlineApi;
+use App\Models\Courier;
 use App\Models\CourierTrip;
-use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
 
@@ -27,6 +27,13 @@ class LogisticsBotController extends Controller
     public function handle(Request $request)
     {
         $data = $request->all();
+
+
+        if (isset($data['callback_query'])) {
+            $this->handleCallback($data);
+            return response('OK', 200);
+        }
+
         $message = $data['message']['text'] ?? null;
         $chatId = $data['message']['chat']['id'] ?? null;
         $contact = $data['message']['contact'] ?? null;
@@ -34,7 +41,7 @@ class LogisticsBotController extends Controller
 
         if ($chatId == self::MANAGERS_CHAT) {
             $this->mode = 'manager';
-            $user = null;
+            $courier = null;
         } else {
             $this->mode = 'courier';
 
@@ -45,26 +52,26 @@ class LogisticsBotController extends Controller
 
             if ($contact) {
                 $phoneNumber = $contact['phone_number'];
-                $this->botService->processPhoneNumber($phoneNumber, $chatId);
+                $this->botService->processPhoneNumber($phoneNumber, $chatId, 'Courier');
                 return response('OK', 200);
             }
 
-            $user = User::where('chat_id', $chatId)->first();
-            if (!$user) {
+            $courier = Courier::where('chat_id', $chatId)->first();
+            if (!$courier) {
                 $this->botService->sendMessage($chatId, "Не знаю, кто вы, пожалуйста, отправьте /start и поделитесь номером.");
                 return response('OK', 200);
             }
         }
 
+        if ($message && preg_match('/^(.+)@fixwill_logistics_bot$/', $message, $matches)) {
+            $message = $matches[1];
+        }
+
 
         if ($message === '/all') {
             // ... Show short list of user's trips ...
-            $this->listAllTripsShort($user, $chatId);
+            $this->listAllTripsShort($courier, $chatId);
             return response('OK', 200);
-        }
-
-        if ($message && preg_match('/^(.+)@fixwill_logistics_bot$/', $message, $matches)) {
-            $message = $matches[1];
         }
 
         if ($message && preg_match('/^\/order_(\d+)$/', $message, $matches)) {
@@ -73,14 +80,9 @@ class LogisticsBotController extends Controller
             return response('OK', 200);
         }
 
-        // 4) If this is a callback query for inline buttons
-        if (isset($data['callback_query'])) {
-            $this->handleCallback($data);
-            return response('OK', 200);
-        }
 
         if ($this->mode == 'courier') {
-            $messageToManagers = "Сообщение от {$user->remonline_courier}";
+            $messageToManagers = "Сообщение от {$courier->name}";
             if ($username)
                 $messageToManagers .= " (@$username)";
 
@@ -94,32 +96,48 @@ class LogisticsBotController extends Controller
     /**
      * Show a short list of the user’s trips in one message.
      */
-    protected function listAllTripsShort(User|null $user, $chatId)
+    protected function listAllTripsShort(Courier|null $courier, $chatId)
     {
-        if ($user) {
-            $trips = CourierTrip::where('user_id', $user->id)->get();
+        if ($courier) {
+            $trips = CourierTrip::where('courier_id', $courier->id)->get();
+
+            $messageText = "Ваши заказы:\n";
+            foreach ($trips as $trip) {
+
+                $remonline = new RemonlineApi();
+
+                $order = $remonline->getOrderById($trip->order_id)['data'];
+                $address = $order['client']['address'];
+
+                $messageText .= "\nЗаказ {$trip->order_label} ({$trip->direction}) - {$trip->status}\n";
+                $messageText .= "$address\n";
+                $messageText .= "Подробнее: /order_{$trip->order_id}\n";
+            }
         } elseif ($chatId == self::MANAGERS_CHAT) {
-            $trips = CourierTrip::all();
+            $messageText = "";
+            $couriers = CourierTrip::all()->groupBy('courier');
+            foreach ($couriers as $courier => $trips) {
+                $courierText = "- $courier:\n";
+                foreach ($trips as $trip) {
+                    $courierText .= "<a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> ({$trip->direction}) - {$trip->status} /order_{$trip->order_id}\n";
+                }
+
+                if (mb_strlen($messageText . $courierText) > 4096) {
+                    $this->botService->sendMessage($chatId, $messageText);
+                    $messageText = "";
+                }
+                $messageText .= $courierText . "\n";
+            }
+
         }
 
+//
+//        if ($trips->isEmpty()) {
+//            $this->botService->sendMessage($chatId, "Нет заказов");
+//            return;
+//        }
 
-        if ($trips->isEmpty()) {
-            $this->botService->sendMessage($chatId, "Нет заказов");
-            return;
-        }
 
-        $messageText = "Ваши заказы:\n";
-        foreach ($trips as $trip) {
-
-            $remonline = new RemonlineApi();
-
-            $order = $remonline->getOrderById($trip->order_id)['data'];
-            $address = $order['client']['address'];
-
-            $messageText .= "\nЗаказ {$trip->order_label} ({$trip->direction}) - {$trip->status}\n";
-            $messageText .= "$address\n";
-            $messageText .= "Подробнее: /order_{$trip->order_id}\n";
-        }
 
         $this->botService->sendMessage($chatId, $messageText);
     }
@@ -136,12 +154,14 @@ class LogisticsBotController extends Controller
         $trip = CourierTrip::where('order_id', $orderId)->first();
 
         if (!$trip) {
-            $this->botService->sendMessage($chatId, "Order not found.");
+            $this->botService->sendMessage($chatId, "Заказ не найден.");
             return;
         }
 
-        $text = "Заказ {$order['id_label']}\n";
-        $text .= "Курьер: {$trip->courier}\n";
+        $warning = $trip->courier_id ? '' : " <b>(не пользуется ботом!)</b>";
+
+        $text = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a>\n";
+        $text .= "Курьер: {$trip->courier}$warning\n";
         $text .= "Направление: {$trip->direction}\n";
         $text .= "Статус: {$trip->status}\n";
         $text .= "Время: {$trip->arrival_time}\n";
@@ -194,7 +214,6 @@ class LogisticsBotController extends Controller
         }
 
         [$action, $orderId] = explode(':', $data);
-//        $user = User::where('chat_id', $chatId)->first();
         $trip = CourierTrip::where('order_id', $orderId)->first();
 
         if ($action == 'call') {
@@ -211,7 +230,7 @@ class LogisticsBotController extends Controller
 
         switch ($action) {
             case 'change_status':
-                $this->showStatusOptions($chatId, $orderId);
+                $this->showStatusOptions($chatId, $orderId, $trip->direction);
                 break;
 
             case 'change_arrival':
@@ -236,11 +255,14 @@ class LogisticsBotController extends Controller
         EmployeeCallController::call($phone, $chatId);
     }
 
-    protected function showStatusOptions($chatId, $orderId)
+    protected function showStatusOptions($chatId, $orderId, $direction)
     {
-        $statuses = ['Назначен', 'В работе', 'Отказ', 'Выполнен'];
+        $statuses = [
+            'привоз' => ['Назначен', 'В работе', 'Отказ', 'Забрал', 'Выполнен'],
+            'отвоз' => ['Назначен', 'В работе', 'Отказ', 'Возврат', 'Выполнен'],
+        ];
         $buttons = [];
-        foreach ($statuses as $status) {
+        foreach ($statuses[$direction] as $status) {
             $buttons[] = [[
                 'text' => ucfirst($status),
                 'callback_data' => "set_status:$orderId:$status"
@@ -281,10 +303,10 @@ class LogisticsBotController extends Controller
 
         if ($action === 'set_status') {
             $trip->update(['status' => $value]);
-            $msg = "Статус заказа {$trip->order_label} изменён на $value.";
+            $msg = "Статус заказа <a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> изменён на $value.";
         } elseif ($action === 'set_arrival') {
             $trip->update(['arrival_time' => $value]);
-            $msg = "Время заказа {$trip->order_label} изменено на $value.";
+            $msg = "Время заказа <a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> изменено на $value.";
         }
 
         if (isset($msg)) {
