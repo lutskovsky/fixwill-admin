@@ -62,21 +62,22 @@ class FetchRemonlineOrders extends Command
                 'order_label' => $order['id_label'],
                 'direction' => $direction,
                 'courier' => $courierName,
+                'order_id' => $order['id'],
+                'courier_id' => $courier->id ?? null
             ];
 
             $existingTrip = CourierTrip::where('order_id', $order['id'])->first();
 
             if ($existingTrip) {
-                if (!$existingTrip->status) {
+                if (!$existingTrip->status || $existingTrip->courier != $courierName) {
                     $existingTrip->status = 'Назначен';
                 }
-                if (!$existingTrip->arrival_time) {
+                if (!$existingTrip->arrival_time || $existingTrip->courier != $courierName) {
                     $existingTrip->arrival_time = null;
                 }
 
                 $existingTrip->update($data);
             } else {
-                $data['courier_id'] = $courier->id ?? null;
                 $data['status'] = 'Назначен';
                 CourierTrip::create($data);
             }
@@ -84,7 +85,7 @@ class FetchRemonlineOrders extends Command
             $this->info("Order {$order['id']} synced successfully.");
         }
 
-        CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->delete();
+//        CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->delete();
 
         $this->info('All orders synced.');
         return 0;
