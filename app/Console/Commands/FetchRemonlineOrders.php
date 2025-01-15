@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Integrations\RemonlineApi;
 use App\Models\Courier;
 use App\Models\CourierTrip;
+use App\Services\Telegram\TelegramBotService;
 use Illuminate\Console\Command;
 
 class FetchRemonlineOrders extends Command
@@ -82,7 +83,20 @@ class FetchRemonlineOrders extends Command
                 CourierTrip::create($data);
             }
 
-            $this->info("Order {$order['id']} synced successfully.");
+            if (!$courier) continue;
+
+            if (!$existingTrip || $existingTrip->courier != $courierName) {
+                $token = config('telegramBots.logistics');
+                // Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
+                $botService = new TelegramBotService($token);
+
+
+                $messageText = "Новый {$direction}\n";
+                $messageText .= "{$order['client']['address']}\n";
+                $messageText .= "Подробнее: /order_{$order['id']}\n";
+
+                $botService->sendMessage($courier->chat_id, $messageText);
+            }
         }
 
 //        CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->delete();
