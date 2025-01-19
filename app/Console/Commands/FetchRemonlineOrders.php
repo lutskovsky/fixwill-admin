@@ -12,6 +12,8 @@ class FetchRemonlineOrders extends Command
 {
     const COURIER_FIELD_PRIVOZ = 'f1482267';
     const COURIER_FIELD_OTVOZ = 'f1569113';
+    const COURIER_TYPE_FIELD_PRIVOZ = 'f1620346';
+    const COURIER_TYPE_FIELD_OTVOZ = 'f5171042';
     protected $signature = 'remonline:fetch-orders';
     /**
      * The console command description.
@@ -64,14 +66,19 @@ class FetchRemonlineOrders extends Command
                 'direction' => $direction,
                 'courier' => $courierName,
                 'order_id' => $order['id'],
-                'courier_id' => $courier->id ?? null
+                'courier_id' => $courier->id ?? null,
+                'courier_type' =>
+                    $direction == "привоз"
+                        ? ($order['custom_fields'][self::COURIER_TYPE_FIELD_PRIVOZ] ?? null)
+                        : ($order['custom_fields'][self::COURIER_TYPE_FIELD_OTVOZ] ?? null),
             ];
 
             $existingTrip = CourierTrip::where('order_id', $order['id'])->first();
 
             if ($existingTrip) {
-                if (!$existingTrip->status || $existingTrip->courier != $courierName) {
+                if (!$existingTrip->status || $existingTrip->courier != $courierName || $existingTrip->moved_on) {
                     $existingTrip->status = 'Назначен';
+
                 }
                 if (!$existingTrip->arrival_time || $existingTrip->courier != $courierName) {
                     $existingTrip->arrival_time = null;
@@ -83,23 +90,31 @@ class FetchRemonlineOrders extends Command
                 CourierTrip::create($data);
             }
 
-            if (!$courier) continue;
-
-            if (!$existingTrip || $existingTrip->courier != $courierName) {
-                $token = config('telegramBots.logistics');
-                // Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
-                $botService = new TelegramBotService($token);
-
-
-                $messageText = "Новый {$direction}\n";
-                $messageText .= "{$order['client']['address']}\n";
-                $messageText .= "Подробнее: /order_{$order['id']}\n";
-
-                $botService->sendMessage($courier->chat_id, $messageText);
+            if (!$courier) {
+                continue;
             }
+
+            if ($existingTrip && !$existingTrip->moved_on && $existingTrip->courier == $courierName) {
+                continue;
+            }
+
+            if ($existingTrip && !$existingTrip->moved_on) {
+                $existingTrip->update(['moved_on' => false]);
+            }
+
+            $token = config('telegramBots.logistics');
+            // Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
+            $botService = new TelegramBotService($token);
+
+
+            $messageText = "Новый {$direction}\n";
+            $messageText .= "{$order['client']['address']}\n";
+            $messageText .= "Подробнее: /order_{$order['id']}\n";
+
+            $botService->sendMessage($courier->chat_id, $messageText);
         }
 
-//        CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->delete();
+        CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->update(['moved_on' => true]);
 
         $this->info('All orders synced.');
         return 0;

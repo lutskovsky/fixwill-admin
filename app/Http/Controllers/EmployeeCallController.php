@@ -7,6 +7,7 @@ use App\Models\Courier;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 class EmployeeCallController extends Controller
 {
@@ -106,6 +107,9 @@ class EmployeeCallController extends Controller
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
 
         $call = $client->call('data', 'get.employees');
+
+        if ($call['error']) return response('Comagic error', 200);
+
         $employees = $call['result']['data'];
         $id = 0;
         foreach ($employees as $employee) {
@@ -125,6 +129,7 @@ class EmployeeCallController extends Controller
         ];
 
         $call = $client->call('call', 'start.employee_call', $callParams);
+        Log::channel('comagic')->info($call);
 
         return response('OK', 200);
     }

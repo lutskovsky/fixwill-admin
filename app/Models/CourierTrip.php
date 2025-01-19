@@ -19,6 +19,10 @@ class CourierTrip extends Model
         'arrival_time',
         'status',
         'order_label',
+        'courier_type',
+        'result',
+        'active',
+        'moved_on',
     ];
 
     /**

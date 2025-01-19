@@ -70,6 +70,21 @@ class LogisticsBotController extends Controller
         }
 
 
+        if ($message && preg_match('/\/info:(\d+):(.+)\n([\S\s]*)/', $message, $matches)) {
+
+            $orderId = $matches[1];
+            $status = $matches[2];
+            $resultMsg = $matches[3];
+
+            $trip = CourierTrip::where('order_id', $orderId)->first();
+
+            $trip->update(['result' => $resultMsg, 'active' => false]);
+
+            $this->applyChange('set_status', "set_status:$orderId:$status", $trip, $chatId);
+//            $this->botService->sendMessage($chatId, $message);
+        }
+
+
         if ($message === '/active') {
             // ... Show short list of user's trips ...
             $this->listAllTripsShort($courier, $chatId, true);
@@ -109,11 +124,11 @@ class LogisticsBotController extends Controller
         if ($courier) {
             if ($onlyActive) {
                 $trips = CourierTrip::where('courier_id', $courier->id)
-                    ->where('status', "Назначен")
+                    ->where('active', true)
                     ->get();
             } else {
                 $trips = CourierTrip::where('courier_id', $courier->id)
-                    ->whereNot('status', "Назначен")
+                    ->where('active', false)
                     ->get();
 
             }
@@ -135,15 +150,14 @@ class LogisticsBotController extends Controller
 
 
             if ($onlyActive) {
-                $trips = CourierTrip::where('status', "Назначен")->get();
+                $trips = CourierTrip::where('active', true)->get();
             } else {
-                $trips = CourierTrip::whereNot('status', "Назначен")->get();
+                $trips = CourierTrip::where('active', false)->get();
 
             }
 
             $couriers = $trips->groupBy('courier');
 
-//            $couriers = CourierTrip::all()->groupBy('courier');
             foreach ($couriers as $courier => $trips) {
                 $courierText = "- $courier:\n";
                 foreach ($trips as $trip) {
@@ -157,16 +171,14 @@ class LogisticsBotController extends Controller
                 $messageText .= $courierText . "\n";
             }
 
+        } else {
+            return;
         }
 
-//
-//        if ($trips->isEmpty()) {
-//            $this->botService->sendMessage($chatId, "Нет заказов");
-//            return;
-//        }
-
-
-
+        if ($trips->isEmpty()) {
+            $this->botService->sendMessage($chatId, "Нет заказов");
+            return;
+        }
         $this->botService->sendMessage($chatId, $messageText);
     }
 
@@ -199,7 +211,25 @@ class LogisticsBotController extends Controller
 
         $text .= "Курьер: {$trip->courier}$warning\n";
         $text .= "Этап: {$trip->status}\n";
-        $text .= "Интервал: {$trip->arrival_time}\n---\n";
+
+
+        $date = $trip->direction == "привоз"
+            ? ($order['custom_fields']['f1482265'] ?? 'нет')
+            : ($order['client']['custom_fields']['f1569111'] ?? 'нет');
+
+        if ($date != 'нет') {
+            $date = date('d.m.Y', $date / 1000);
+        }
+        $text .= "Дата: $date\n";
+
+
+        if ($trip->direction == "привоз") {
+//            $text .= "Дата: " . ($order['custom_fields']['f1482265'] ?? '') . "\n";
+            $text .= "Интервал от клиента: " . ($order['custom_fields']['f4903156'] ?? '') . "\n";
+            $text .= "Перенос интервала: {$trip->arrival_time}\n";
+        }
+
+        $text .= "---\n";
 
         $text .= "Клиент: {$order['client']['name']}\n";
         $text .= "Адрес: {$order['client']['address']}\n";
@@ -220,6 +250,10 @@ class LogisticsBotController extends Controller
             $text .= "Предоплачено: {$order['payed']}\n";
             $toPay = $order['price'] - $order['payed'];
             $text .= "К оплате: {$toPay}\n";
+        }
+
+        if ($result = $trip->result) {
+            $text .= $result;
         }
 
         $inlineKeyboard = $this->getInlineKeyboard($trip);
@@ -263,7 +297,7 @@ class LogisticsBotController extends Controller
 
         if (!$trip) {
             // You might want to answerCallbackQuery here
-            $this->botService->sendMessage($chatId, "Trip not found.");
+            $this->botService->sendMessage($chatId, "Заказ не найден :(");
             return;
         }
 
@@ -278,8 +312,12 @@ class LogisticsBotController extends Controller
 
             case 'set_status':
             case 'set_arrival':
-                $this->applyChange($action, $data, $trip, $chatId, $messageId);
+            $this->applyChange($action, $data, $trip, $chatId);
                 break;
+            case 'success':
+            case 'fail':
+                $this->complete($action, $data, $trip, $chatId, $messageId);
+
         }
     }
 
@@ -330,7 +368,7 @@ class LogisticsBotController extends Controller
     /**
      * Apply the chosen status or arrival interval to the trip.
      */
-    protected function applyChange($action, $data, CourierTrip $trip, $chatId, $messageId)
+    protected function applyChange($action, $data, CourierTrip $trip, $chatId)
     {
         // data is like "set_status:delivered:123" or "set_arrival:9-12:123"
         $parts = explode(':', $data);
@@ -343,6 +381,7 @@ class LogisticsBotController extends Controller
         if ($action === 'set_status') {
             $trip->update(['status' => $value]);
             $msg = "Этап заказа <a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> изменён на $value.";
+
         } elseif ($action === 'set_arrival') {
             $trip->update(['arrival_time' => $value]);
             $msg = "Время заказа <a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> изменено на $value.";
@@ -363,6 +402,10 @@ class LogisticsBotController extends Controller
         $orderId = $trip->order_id;
         $buttons = [];
 
+        if (!$trip->active) {
+            return $buttons;
+        }
+
 //        if ($this->mode == 'manager') {
 //            $buttons[] = [[
 //                        'text' => "Сменить этап",
@@ -376,30 +419,36 @@ class LogisticsBotController extends Controller
 //        }
 
 
-        if (!$trip->arrival_time) {
-            $arrivalIntervals = ['9-12', '12-15', '15-18', '18-21'];
-            foreach ($arrivalIntervals as $interval) {
-                $buttons[] = [[
-                    'text' => $interval,
-                    'callback_data' => "set_arrival:$orderId:$interval"
-                ]];
-            }
-            return $buttons;
-        }
-
         if ($trip->direction == 'привоз') {
+            if (!$trip->arrival_time) {
+                $arrivalIntervals = ['9-12', '12-15', '15-18', '18-21'];
+//                $buttons[] = [[
+//                    'text' => "Уточните интервал:",
+//                ]];
+                foreach ($arrivalIntervals as $interval) {
+                    $buttons[] = [[
+                        'text' => $interval,
+                        'callback_data' => "set_arrival:$orderId:$interval"
+                    ]];
+                }
+                return $buttons;
+            }
+
             $options = [
-                'Забрал' => null,
-                'Взял >1000, не забрал' => null,
-                'Перенести время' => "change_arrival:$orderId",
-                'Отказ' => null
-            ];
+                'Забрал' => "success:$orderId:Забрал"];
+
+            if ($trip->courier_type == 'мастер') {
+                $options['Взял >1000, не забрал'] = null;
+            }
+            $options['Перенести время'] = "change_arrival:$orderId";
+            $options['Отказ'] = "fail:$orderId:Отказ";
+
 
         } else {
             $options = [
-                'Отдал товар' => null,
-                'Перенести время' => "change_arrival:$orderId",
-                'Проблемная доставка' => null
+                'Отдал товар' => "success:$orderId:Отдал товар",
+//                'Перенести время' => "change_arrival:$orderId",
+                'Проблемная доставка' => "fail:$orderId:Проблемная доставка"
             ];
         }
 
@@ -416,6 +465,46 @@ class LogisticsBotController extends Controller
 
 
         return $buttons;
+
+    }
+
+    private function complete(string $action, mixed $data, $trip, mixed $chatId, mixed $messageId)
+    {
+        $successTemplate = "Модель -
+МКАД(ЦКАД) -
+Вес -
+Парковка -
+Соседний сектор -
+Монтаж/настройка -
+Озвучил (диагност) -
+Фактическая проблема (диагност) -
+Цена за запчасть (диагност) -
+Цена за работу (диагност) -
+Сроки (диагност)-
+Иное - ";
+
+        $parts = explode(':', $data);
+        if (count($parts) < 3) {
+            return;
+        }
+        $status = $parts[2];
+
+        if ($action == 'success') {
+            $template = $successTemplate;
+        } elseif ($status == 'Отказ') {
+            $template = "Причина отказа - ";
+        } elseif ($status == 'Проблемная доставка') {
+            $template = "Причина возврата - ";
+        } else {
+            return;
+        }
+
+        $buttons = [[[
+            'text' => "Вставить шаблон",
+            'switch_inline_query_current_chat' => "/info:{$trip->order_id}:$status\n\n" . $template,
+        ]]];
+        $replyMarkup = ['inline_keyboard' => $buttons];
+        $this->botService->sendMessage($chatId, 'Для закрытия заказа нажмите на кнопку "Вставить шаблон", заполните его и отправьте сообщение.', $replyMarkup);
 
     }
 }
