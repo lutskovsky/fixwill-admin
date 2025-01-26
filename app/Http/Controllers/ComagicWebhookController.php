@@ -3,24 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
+use App\Models\Scenario;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
 
 class ComagicWebhookController extends Controller
 {
+    const SITE_ORDER_FIELD = 'f4196099';
+
     public function handle(Request $request)
     {
-        // Retrieve the parameters from the GET request
+        if ($request->action == 'notify') {
+            return $this->notify($request);
+        } elseif ($request->action == 'create') {
+            return $this->create($request);
+        }
+
+        return response('Wrong action', 400);
+    }
+
+    protected function notify(Request $request)
+    {
         $contactPhoneNumber = $request->query('contact_phone_number');
         $employeeNumber = $request->query('employee_number');
 
-        // Validate the required parameters
         if (empty($contactPhoneNumber) || empty($employeeNumber)) {
             return response('Invalid parameters', 400);
         }
 
-        // Search for the employee in the Employees table
         $employee = User::where('internal_phone', $employeeNumber)->first();
 
         if (!$employee) {
@@ -28,14 +39,10 @@ class ComagicWebhookController extends Controller
         }
 
         $token = config('telegramBots.call_notifications');
-        // Or: $token = env('TELEGRAM_BOT_TOKEN_CALL_NOTIFICATIONS');
         $botService = new TelegramBotService($token);
 
-        // Create an instance of the RemonlineApi
-        $apiToken = env('REMONLINE_TOKEN'); // Ensure you have the API token in your .env file
-        $rem = new RemonlineApi($apiToken);
+        $rem = new RemonlineApi();
 
-        // Call the getOrders method with the client phone number
         $response = $rem->getOrders(['client_phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
 
         $orders = $response['data'];
@@ -90,5 +97,78 @@ class ComagicWebhookController extends Controller
         $botService->sendMessage($employee->chat_id, $msg);
 
         return response('OK', 200);
+    }
+
+    protected function create(Request $request)
+    {
+
+        $rem = new RemonlineApi();
+
+        $number = $request->query('contact_phone_number');
+
+        if ($number == '74950218573') die();
+
+        if ($request->query('scenario')) {
+            $scenario = trim($request->query('scenario'), " +");
+        } else $scenario = '';
+
+        $dbScenario = Scenario::where('name', $scenario)->first();
+
+        if ($dbScenario && $dbScenario->skip_order_creation) {
+            return response('Order was not created - excluded scenario', 200);
+        }
+
+        $response = $rem->getOrders(['client_phones' => [$number], 'sort_dir' => 'desc']);
+
+        foreach ($response['data'] as $order) {
+            // Ищем открытый заказ по тому же сценарию
+
+            // Заказ не считается, если закрыт
+            if (in_array($order['status']['group'], [6, 7])) {
+                continue;
+            }
+
+            // Заказ не считается, если другой сценарий
+            $scenarioInOrder = $order['custom_fields'][self::SITE_ORDER_FIELD];
+            $scenarioInOrder = trim($scenarioInOrder, " +");
+            if ($scenarioInOrder != $scenario) {
+                continue;
+            }
+
+            // Если мы дошли досюда, значит это открытый заказ по тому же сценарию и новый создавать не надо
+            return response('Order was not created - found open order', 200);
+        }
+
+        // Если вышли из цикла, значит надо создать новый заказ
+        $clients = $rem->getClients(['phones' => [$number]]);
+
+        if ($clients['count'] == 0) {
+            $response = $rem->createClient(['name' => "Новый клиент", 'phone' => [$number]]);
+            $clientId = $response['data']['id'];
+        } else {
+            $clientId = $clients['data'][0]['id'];
+        }
+
+        /** @var array $orderTypes */
+        /** @var array $remonlineCustomFields */
+        $customFields = [
+            5192512 => 'Москва',
+//    1070009 => 'Неизвестно',
+//    1070012 => 'Неизвестно',
+//    2129012 => 'Неизвестно',
+            4196099 => $scenario
+        ];
+
+        if (mb_stripos($scenario, 'партнер') !== false) {
+            $customFields[4214453] = $scenario;
+        }
+        $resp = $rem->createOrder([
+            'branch_id' => 50230,
+            'order_type' => 89790,
+            'client_id' => $clientId,
+
+            'custom_fields' => $customFields
+        ]);
+        return response('Order created', 200);
     }
 }
