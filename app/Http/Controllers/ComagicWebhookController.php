@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
+use App\Models\Scenario;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
