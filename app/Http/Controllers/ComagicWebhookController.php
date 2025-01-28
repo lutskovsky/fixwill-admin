@@ -123,8 +123,8 @@ class ComagicWebhookController extends Controller
         foreach ($response['data'] as $order) {
             // Ищем открытый заказ по тому же сценарию
 
-            // Заказ не считается, если закрыт
-            if (in_array($order['status']['group'], [6, 7])) {
+            // Заказ не считается, если новый или закрыт
+            if (in_array($order['status']['group'], [1, 6, 7])) {
                 continue;
             }
 
