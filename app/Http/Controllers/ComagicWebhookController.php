@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
-use App\Models\Scenario;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
@@ -112,11 +111,11 @@ class ComagicWebhookController extends Controller
             $scenario = trim($request->query('scenario'), " +");
         } else $scenario = '';
 
-        $dbScenario = Scenario::where('name', $scenario)->first();
-
-        if ($dbScenario && $dbScenario->skip_order_creation) {
-            return response('Order was not created - excluded scenario', 200);
-        }
+//        $dbScenario = Scenario::where('name', $scenario)->first();
+//
+//        if ($dbScenario && $dbScenario->skip_order_creation) {
+//            return response('Order was not created - excluded scenario', 200);
+//        }
 
         $response = $rem->getOrders(['client_phones' => [$number], 'sort_dir' => 'desc']);
 
