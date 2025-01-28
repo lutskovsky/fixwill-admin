@@ -111,11 +111,11 @@ class ComagicWebhookController extends Controller
             $scenario = trim($request->query('scenario'), " +");
         } else $scenario = '';
 
-//        $dbScenario = Scenario::where('name', $scenario)->first();
-//
-//        if ($dbScenario && $dbScenario->skip_order_creation) {
-//            return response('Order was not created - excluded scenario', 200);
-//        }
+        $dbScenario = Scenario::where('name', $scenario)->first();
+
+        if ($dbScenario && $dbScenario->skip_order_creation) {
+            return response('Order was not created - excluded scenario', 200);
+        }
 
         $response = $rem->getOrders(['client_phones' => [$number], 'sort_dir' => 'desc']);
 
