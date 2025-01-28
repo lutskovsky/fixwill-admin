@@ -150,7 +150,7 @@ class LogisticsBotController extends Controller
 
 
             if ($onlyActive) {
-                $trips = CourierTrip::where('active', true)->get();
+                $trips = CourierTrip::where('active', true)->where('moved_on', false)->get();
             } else {
                 $trips = CourierTrip::where('active', false)->get();
 
@@ -233,9 +233,12 @@ class LogisticsBotController extends Controller
 
         $text .= "Клиент: {$order['client']['name']}\n";
         $text .= "Адрес: {$order['client']['address']}\n";
-        $text .= "Подъезд: {$order['client']['custom_fields']['f3532128']}\n";
-        $text .= "Этаж: {$order['client']['custom_fields']['f3532129']}\n";
-        $text .= "Квартира: {$order['client']['custom_fields']['f3532130']}\n";
+        $entrance = $order['client']['custom_fields']['f3532128'] ?? "";
+        $text .= "Подъезд: {$entrance}\n";
+        $floor = $order['client']['custom_fields']['f3532129'] ?? '';
+        $text .= "Этаж: {$floor}\n";
+        $flat = $order['client']['custom_fields']['f3532130'] ?? '';
+        $text .= "Квартира: {$flat}\n";
         $text .= "Метро: {$order['client']['custom_fields']['f3452769']}\n";
         $text .= "Оборудование: {$order['custom_fields']['f1070009']}\n";
         $text .= "Бренд: {$order['custom_fields']['f1070012']}\n";
