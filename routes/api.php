@@ -17,6 +17,10 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('webhook')->group(function () {
     Route::post('telegram', [TelegramController::class, 'handle']);
+    Route::prefix('call')->group(function () {
+        Route::get('notify', [ComagicWebhookController::class, 'notify']);
+        Route::get('create-order', [ComagicWebhookController::class, 'create']);
+    });
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
 
     Route::post('/telegram/call_notifications', [CallNotificationsBotController::class, 'handle']);

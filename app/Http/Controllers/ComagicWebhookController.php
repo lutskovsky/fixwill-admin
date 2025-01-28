@@ -22,7 +22,7 @@ class ComagicWebhookController extends Controller
         return response('Wrong action', 400);
     }
 
-    protected function notify(Request $request)
+    public function notify(Request $request)
     {
         $contactPhoneNumber = $request->query('contact_phone_number');
         $employeeNumber = $request->query('employee_number');
@@ -98,7 +98,7 @@ class ComagicWebhookController extends Controller
         return response('OK', 200);
     }
 
-    protected function create(Request $request)
+    public function create(Request $request)
     {
 
         $rem = new RemonlineApi();
