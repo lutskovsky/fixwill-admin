@@ -352,6 +352,7 @@ const columnDefs = ref([
     {headerName: "Бренд", field: "brand"},
     {headerName: "Диагональ", field: "diagonal"},
     {headerName: "Мастер", field: "master"},
+    {headerName: "Оператор", field: "operator"},
     {headerName: "Согласовальщик", field: "soglas"},
     {headerName: "Сайт", field: "site"},
 ]);

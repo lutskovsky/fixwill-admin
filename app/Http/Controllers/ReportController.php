@@ -100,6 +100,7 @@ class ReportController extends Controller
                 'diagonal' => $order["custom_fields"]["f1536267"] ?? '',
                 'brand' => $order["custom_fields"]["f1070012"] ?? '',
                 'master' => $order["custom_fields"]["f5166933"] ?? '',
+                'operator' => $order["custom_fields"]["f2129012"] ?? '',
                 'soglas' => $order["custom_fields"]["f3471787"] ?? '',
                 'site' => $order["custom_fields"]["f4196099"] ?? '',
                 'revenue' => $revenue,
