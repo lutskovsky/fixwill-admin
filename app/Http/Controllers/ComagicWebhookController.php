@@ -105,6 +105,9 @@ class ComagicWebhookController extends Controller
         $rem = new RemonlineApi();
 
         $number = $request->query('contact_phone_number');
+        if (!$number) {
+            return response('Phone number missing', 400);
+        }
 
         if ($number == '74950218573') die();
 
