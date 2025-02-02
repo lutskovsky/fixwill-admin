@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
 use App\Models\Scenario;
+use App\Models\Status;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
@@ -124,10 +125,18 @@ class ComagicWebhookController extends Controller
         $response = $rem->getOrders(['client_phones' => [$number], 'sort_dir' => 'desc']);
 
         foreach ($response['data'] as $order) {
-            // Ищем открытый заказ по тому же сценарию
+            // Ищем текущий заказ по тому же сценарию
 
-            // Заказ не считается, если новый или закрыт
-            if (in_array($order['status']['group'], [1, 6, 7])) {
+            // Заказ не считается, если не текущий
+            $statusId = $order['status']['id'];
+            $statusSettings = Status::where('status_id', $statusId)->first();
+
+            // Если статус ещё не синхронизирован, смотрим на группу
+            if (!$statusSettings) {
+                if (in_array($order['status']['group'], [1, 6, 7])) {
+                    continue;
+                }
+            } elseif (!$statusSettings->current) {
                 continue;
             }
 

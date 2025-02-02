@@ -9,3 +9,5 @@
 
 <x-backpack::menu-item title="Виртуальные номера" icon="la la-tty" :link="backpack_url('virtual-number')"/>
 <x-backpack::menu-item title="Сценарии" icon="la la-sitemap" :link="backpack_url('scenario')"/>
+
+<x-backpack::menu-item title="Статусы" icon="la la-stream" :link="backpack_url('status')"/>

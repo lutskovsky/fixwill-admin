@@ -21,4 +21,9 @@ Route::group([
     Route::crud('virtual-number', 'VirtualNumberCrudController');
     Route::crud('courier', 'CourierCrudController');
     Route::crud('scenario', 'ScenarioCrudController');
+    Route::post('status/sync', [
+        'uses' => '\App\Http\Controllers\Admin\StatusCrudController@sync',
+        'as' => 'sync.statuses',
+    ])->middleware('web');
+    Route::crud('status', 'StatusCrudController');
 }); // this should be the absolute last line of this file

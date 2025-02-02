@@ -48,7 +48,7 @@ class ScenarioCrudController extends CrudController
     {
 
         CRUD::column('name')->label("Название");
-        CRUD::column('skip_order_creation')->type('boolean')->label("Пропускать создание заказа");
+        CRUD::column('skip_order_creation')->type('check')->label("Пропускать создание заказа");
 
 
         /**
