@@ -55,6 +55,7 @@ const observer = new MutationObserver((mutationsList) => {
                 if (node.nodeType === Node.ELEMENT_NODE) {
                     const divs = node.querySelectorAll('div[title^="Заказ"]');
                     divs.forEach(div => {
+                        processNode(div);
                         orderLabelObserver.observe(div, {
                             characterData: true,
                             childList: true,
