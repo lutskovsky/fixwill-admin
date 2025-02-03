@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('statuses', function (Blueprint $table) {
-            //
+            $table->renameColumn('skip_order_creation', 'current');
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('statuses', function (Blueprint $table) {
-            //
+            $table->renameColumn('current', 'skip_order_creation');
         });
     }
 };

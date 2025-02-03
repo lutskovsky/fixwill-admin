@@ -31,14 +31,12 @@ class StatusesTableSeeder extends Seeder
                 [$status_id, $status_name, $status_type, $transit] = $row;
 
                 // Map the CSV data to the database fields
-                DB::table('statuses')->insert([
-                    'status_id' => (int)$status_id,
-                    'current' => false, // Always false
+                DB::table('statuses')->updateOrInsert(
+                    ['status_id' => (int)$status_id,],
+                    [
                     'accepted_by_operator' => in_array($status_type, ['valid', 'success']), // True if 'valid' or 'success'
                     'success_for_operator' => $status_type === 'success', // True if 'success'
                     'transit' => (bool)$transit, // Convert to boolean
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]);
             }
         }

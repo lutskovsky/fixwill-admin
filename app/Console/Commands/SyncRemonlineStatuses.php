@@ -24,11 +24,11 @@ class SyncRemonlineStatuses extends Command
 
             $existingStatus = Status::where('status_id', $apiStatus->id)->first();
 
-            if (true || !$existingStatus) {
-                if (!in_array($apiStatus->group, [1, 6, 7])) {
-                    $updateArray['current'] = true;
-                } else {
+            if (!$existingStatus) {
+                if (in_array($apiStatus->group, [1, 6, 7])) {
                     $updateArray['current'] = false;
+                } else {
+                    $updateArray['current'] = true;
                 }
             }
 
