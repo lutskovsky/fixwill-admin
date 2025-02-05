@@ -76,7 +76,7 @@ class LogisticsBotController extends Controller
             $status = $matches[2];
             $resultMsg = $matches[3];
 
-            $trip = CourierTrip::where('order_id', $orderId)->first();
+            $trip = CourierTrip::where('order_id', $orderId)->orderBy('id', 'DESC')->first();
 
             $trip->update(['result' => $resultMsg, 'active' => false]);
 
@@ -290,7 +290,7 @@ class LogisticsBotController extends Controller
         }
 
         [$action, $orderId] = explode(':', $data);
-        $trip = CourierTrip::where('order_id', $orderId)->first();
+        $trip = CourierTrip::where('order_id', $orderId)->orderBy('id', 'DESC')->first();
 
         if ($action == 'call') {
 
