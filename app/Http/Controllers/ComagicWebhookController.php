@@ -97,7 +97,9 @@ class ComagicWebhookController extends Controller
             $msg .= "<a href='$newOrderUrl'>Создать новый заказ</a>\n\n";
         }
 
-        $botService->sendMessage($employee->chat_id, $msg);
+        if ($employee->chat_id) {
+            $botService->sendMessage($employee->chat_id, $msg);
+        }
 
         return response('OK', 200);
     }
