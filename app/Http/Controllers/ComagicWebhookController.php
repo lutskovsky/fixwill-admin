@@ -54,7 +54,9 @@ class ComagicWebhookController extends Controller
             $response = $rem->getClients(['phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
             $clients = $response['data'];
             if (empty($clients)) {
-                $botService->sendMessage($employee->chat_id, 'Клиент по номеру не найден');
+                if ($employee->chat_id) {
+                    $botService->sendMessage($employee->chat_id, 'Клиент по номеру не найден');
+                }
                 return response('No clients', 200);
             }
             foreach ($clients as $client) {
