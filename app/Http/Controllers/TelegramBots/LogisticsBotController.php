@@ -191,7 +191,7 @@ class LogisticsBotController extends Controller
 
         $order = $remonline->getOrderById($orderId)['data'];
 
-        $trip = CourierTrip::where('order_id', $orderId)->first();
+        $trip = CourierTrip::where('order_id', $orderId)->orderBy('id', 'DESC')->first();
 
         if (!$trip) {
             $this->botService->sendMessage($chatId, "Заказ не найден.");
