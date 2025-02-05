@@ -29,6 +29,10 @@ class FetchRemonlineOrders extends Command
      */
     public function handle()
     {
+
+        $token = config('telegramBots.logistics');// Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
+        $botService = new TelegramBotService($token);
+
         $this->info('Fetching orders from Remonline...');
 
         $remonline = new RemonlineApi();
@@ -102,16 +106,13 @@ class FetchRemonlineOrders extends Command
                 $existingTrip->update(['moved_on' => false]);
             }
 
-            $token = config('telegramBots.logistics');
-            // Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
-            $botService = new TelegramBotService($token);
 
-
-            $messageText = "Новый {$direction}\n";
-            $messageText .= "{$order['client']['address']}\n";
-            $messageText .= "Подробнее: /order_{$order['id']}\n";
-
-            $botService->sendMessage($courier->chat_id, $messageText);
+            if ($courier->chat_id) {
+                $messageText = "Новый {$direction}\n";
+                $messageText .= "{$order['client']['address']}\n";
+                $messageText .= "Подробнее: /order_{$order['id']}\n";
+                $botService->sendMessage($courier->chat_id, $messageText);
+            }
         }
 
         CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->update(['moved_on' => true]);
