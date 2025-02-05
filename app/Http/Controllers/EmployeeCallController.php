@@ -108,7 +108,7 @@ class EmployeeCallController extends Controller
 
         $call = $client->call('data', 'get.employees');
 
-        if ($call['error']) return response('Comagic error', 200);
+        if (isset($call['error'])) return response('Comagic error', 200);
 
         $employees = $call['result']['data'];
         $id = 0;
