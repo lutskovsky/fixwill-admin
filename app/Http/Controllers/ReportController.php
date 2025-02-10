@@ -47,9 +47,11 @@ class ReportController extends Controller
             'statuses' => $statuses
         ];
 
-        $onlyClosed = ($orderSelection === 'closed');
-        if ($onlyClosed) {
+        if (($orderSelection === 'closed')) {
             $query['closed_at'] = [$start, $end];
+        }
+        if (($orderSelection === 'created')) {
+            $query['created_at'] = [$start, $end];
         }
 
 
@@ -67,12 +69,16 @@ class ReportController extends Controller
         foreach ($orders as $order) {
             if (isset($order['closed_at'])) {
 
-                $closeDate = (new DateTime('now', new DateTimeZone("Europe/Moscow")))
+                $closedDate = (new DateTime('now', new DateTimeZone("Europe/Moscow")))
                     ->setTimestamp($order['closed_at'] / 1000)
                     ->format('d.m.Y');
             } else {
-                $closeDate = null;
+                $closedDate = null;
             }
+
+            $createdDate = (new DateTime('now', new DateTimeZone("Europe/Moscow")))
+                ->setTimestamp($order['created_at'] / 1000)
+                ->format('d.m.Y');
 
             $revenue = $order['price'];
 
@@ -98,7 +104,8 @@ class ReportController extends Controller
                 'id' => $order['id'],
                 'label' => $order['id_label'],
                 'status' => $order['status']['name'] ?? null,
-                'date' => $closeDate,
+                'closed_date' => $closedDate,
+                'created_date' => $createdDate,
                 'device_type' => $order["custom_fields"]["f1070009"] ?? '',
                 'city' => $order["custom_fields"]["f5192512"] ?? '',
                 'diagonal' => $order["custom_fields"]["f1536267"] ?? '',

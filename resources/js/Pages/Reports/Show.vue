@@ -329,21 +329,16 @@ const rowData = ref([]);
 const basicRenderer = params => params.value;
 
 const presetName = ref('');
+
+function dateComparator() {
+    return function (filterLocalDateAtMidnight, cellValue) {
+        if (cellValue == null) return -1;
+        const cellDate = new Date(cellValue);
+        return cellDate - filterLocalDateAtMidnight;
+    };
+}
+
 const columnDefs = ref([
-    {
-        headerName: "Дата закрытия",
-        field: "date",
-        filter: 'agDateColumnFilter',
-        filterParams: {
-            inRangeInclusive: true,
-            comparator: function (filterLocalDateAtMidnight, cellValue) {
-                if (cellValue == null) return -1;
-                const cellDate = new Date(cellValue);
-                return cellDate - filterLocalDateAtMidnight;
-            },
-            browserDatePicker: true
-        },
-    },
     {
         headerName: "Заказ",
         field: "label",
@@ -357,6 +352,27 @@ const columnDefs = ref([
             }
         }
     },
+    {headerName: "Статус", field: "status"},
+    {
+        headerName: "Дата создания",
+        field: "created_date",
+        filter: 'agDateColumnFilter',
+        filterParams: {
+            inRangeInclusive: true,
+            comparator: dateComparator,
+            browserDatePicker: true
+        },
+    },
+    {
+        headerName: "Дата закрытия",
+        field: "closed_date",
+        filter: 'agDateColumnFilter',
+        filterParams: {
+            inRangeInclusive: true,
+            comparator: dateComparator,
+            browserDatePicker: true
+        },
+    },
     {headerName: "Стоимость заказа", field: "revenue"},
     {headerName: "Себестоимость материалов", field: "costParts"},
     {headerName: "Сумма себестоимости материалов", field: "costParts", aggFunc: roundedSumFunc},
@@ -365,7 +381,6 @@ const columnDefs = ref([
     {headerName: "Средняя валовая прибыль", field: "netProfit", aggFunc: roundedAvgFunc},
     {headerName: "Сумма валовой прибыли", field: "netProfit", aggFunc: roundedSumFunc},
     {headerName: "Город", field: "city"},
-    {headerName: "Статус", field: "status"},
     {headerName: "Тип устройства", field: "device_type"},
     {headerName: "Бренд", field: "brand"},
     {headerName: "Диагональ", field: "diagonal"},
@@ -563,9 +578,14 @@ const deletePreset = () => {
 
             <div class="col-md-3">
                 <div class="form-check">
+                    <input id="created" v-model="orderSelection" checked class="form-check-input" type="radio"
+                           value="created"/>
+                    <label class="form-check-label" for="created">Созданные в период</label>
+                </div>
+                <div class="form-check">
                     <input id="closed" v-model="orderSelection" checked class="form-check-input" type="radio"
                            value="closed"/>
-                    <label class="form-check-label" for="closed">Закрытые</label>
+                    <label class="form-check-label" for="closed">Закрытые в период</label>
                 </div>
                 <div class="form-check">
                     <input id="open" v-model="orderSelection" class="form-check-input" type="radio" value="open"/>
