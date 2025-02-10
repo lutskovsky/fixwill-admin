@@ -5,6 +5,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPresetController;
+use App\Http\Controllers\StatusChangeController;
 use App\Http\Controllers\TelegramBots\CallNotificationsBotController;
 use App\Http\Controllers\TelegramBots\LogisticsBotController;
 use App\Http\Controllers\TelegramController;
@@ -22,6 +23,8 @@ Route::prefix('webhook')->group(function () {
         Route::get('create-order', [ComagicWebhookController::class, 'create']);
     });
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
+
+    Route::post('status-change', [StatusChangeController::class, 'store']);
 
     Route::post('/telegram/call_notifications', [CallNotificationsBotController::class, 'handle']);
     Route::post('/telegram/logistics', [LogisticsBotController::class, 'handle']);
