@@ -6,6 +6,7 @@ use App\Integrations\RemonlineApi;
 use App\Models\RemonlineOrderStatus;
 use App\Models\RemonlineOrderType;
 use App\Models\ReportPreset;
+use App\Models\Status;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Http\Request;
@@ -51,6 +52,10 @@ class ReportController extends Controller
             $query['closed_at'] = [$start, $end];
         }
 
+
+        $acceptedStatuses = Status::where('accepted_by_operator', true)->pluck('status_id')->toArray();
+        $successfulStatuses = Status::where('success_for_operator', true)->pluck('status_id')->toArray();
+
         $orders = array();
         do {
             $response = $rem->getOrders($query);
@@ -86,11 +91,10 @@ class ReportController extends Controller
             // себестоимость - только части
             // стоимость услуг - только услуги
             // валовая = выр - только себестоимость (частей)
-            // прибыль = выр -  стоимость всего
+            // прибыль = выр - стоимость всего
 
+            $statusId = $order['status']['id'];
             $item = [
-//            'label' => "<a href='fsfff.io' target='_blank'>" . $order['id_label'] . "</a>",
-
                 'id' => $order['id'],
                 'label' => $order['id_label'],
                 'status' => $order['status']['name'] ?? null,
@@ -101,6 +105,8 @@ class ReportController extends Controller
                 'brand' => $order["custom_fields"]["f1070012"] ?? '',
                 'master' => $order["custom_fields"]["f5166933"] ?? '',
                 'operator' => $order["custom_fields"]["f2129012"] ?? '',
+                'accepted_by_operator' => (int)in_array($statusId, $acceptedStatuses),
+                'success_for_operator' => (int)in_array($statusId, $successfulStatuses),
                 'soglas' => $order["custom_fields"]["f3471787"] ?? '',
                 'site' => $order["custom_fields"]["f4196099"] ?? '',
                 'revenue' => $revenue,

@@ -296,6 +296,22 @@ const props = defineProps({
     presets: Object,
 });
 
+class TextRenderer {
+    // init method gets the details of the cell to be renderer
+    init(params) {
+        this.eGui = document.createElement('span');
+        this.eGui.innerHTML = params.value;
+    }
+
+    getGui() {
+        return this.eGui;
+    }
+
+    refresh(params) {
+        return false;
+    }
+}
+
 const gridApi = ref(null);
 const presets = ref(props.presets);
 const selectedPreset = ref({});
@@ -309,6 +325,8 @@ const selectedStatuses = ref([]);
 const startDate = ref("");
 const endDate = ref("");
 const rowData = ref([]);
+
+const basicRenderer = params => params.value;
 
 const presetName = ref('');
 const columnDefs = ref([
@@ -353,6 +371,55 @@ const columnDefs = ref([
     {headerName: "Диагональ", field: "diagonal"},
     {headerName: "Мастер", field: "master"},
     {headerName: "Оператор", field: "operator"},
+    {
+        headerName: "Принят",
+        field: "accepted_by_operator",
+        aggFunc: 'sum',
+        // aggFunc: params => params.values.reduce((sum, value) => sum + (value ? 1 : 0), 0),
+        // valueGetter: params => {
+        //     if (params.node.group) {
+        //         return params.value;
+        //     }
+        //     return Boolean(params.value);
+        // },
+        // cellRendererSelector: params => {
+        //     if (params.node.group) {
+        //         // For group rows, simply display the number.
+        //         return { component: params => params.value };
+        //     }
+        //     // For normal (leaf) rows, use the checkbox renderer.
+        //     return { component: 'agCheckboxCellRenderer' };
+        // }
+    },
+    {
+        headerName: "Успешный",
+        field: "success_for_operator",
+        aggFunc: 'sum',
+
+    },
+    {
+        headerName: 'Процент успешных',
+        // Calculate percentage only for group rows
+        valueGetter: params => {
+            if (params.node.group) {
+                const accepted = params.node.aggData?.accepted_by_operator;
+                const success = params.node.aggData?.success_for_operator;
+                if (typeof accepted == 'undefined') return null;
+                return accepted ? (success / accepted) * 100 : 0;
+            }
+            return null; // Non-group rows show nothing
+        },
+        // Format with two decimal places and handle zero accepted
+        cellRenderer: params => {
+            if (params.value == null) {
+                return '';
+            } else if (params.value < 65) {
+                return '<span style="color:red" >' + `${params.value.toFixed(1)}%` + '</span>';
+            } else {
+                return `${params.value.toFixed(1)}%`;
+            }
+        }
+    },
     {headerName: "Согласовальщик", field: "soglas"},
     {headerName: "Сайт", field: "site"},
 ]);
