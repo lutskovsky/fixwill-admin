@@ -34,11 +34,12 @@ class StatusChangeController extends Controller
             $rem = new RemonlineApi();
             $order = $rem->getOrderById($orderId)['data'];
 
+            // if no operator
             if (!isset($order["custom_fields"]["f2129012"]) || !$order["custom_fields"]["f2129012"]) {
                 $token = config('telegramBots.notifications');
                 $botService = new TelegramBotService($token);
                 $msg = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> без оператора.";
-                $botService->sendMessage('-4725652731', $msg);
+                $botService->sendMessage('-2373384758', $msg);
             }
         }
 
