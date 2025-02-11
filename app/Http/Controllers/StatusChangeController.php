@@ -39,7 +39,7 @@ class StatusChangeController extends Controller
                 $token = config('telegramBots.notifications');
                 $botService = new TelegramBotService($token);
                 $msg = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> без оператора.";
-                $botService->sendMessage('-2373384758', $msg);
+                $botService->sendMessage('-1002373384758', $msg);
             }
         }
 

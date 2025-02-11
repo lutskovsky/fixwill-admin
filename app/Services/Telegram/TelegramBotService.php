@@ -35,14 +35,14 @@ class TelegramBotService
     /**
      * Send a text message to the specified chat.
      */
-    public function sendMessage(int|string $chatId, string $text, array $replyMarkup = null): bool
+    public function sendMessage(int|string $chatId, string $text, array $replyMarkup = null)
     {
         $url = 'https://api.telegram.org/bot' . $this->token . '/sendMessage';
 
         $data = [
             'chat_id' => $chatId,
             'text' => $text,
-            'parse_mode' => 'html',
+            'parse_mode' => 'HTML',
         ];
 
         if ($replyMarkup) {
@@ -51,11 +51,7 @@ class TelegramBotService
 
         $response = Http::post($url, $data);
 
-//        if ($replyMarkup) {
-//            $this->sendMessage($chatId, print_r($data, true));
-//        }
-
-        return $response->successful();
+        return $response;
     }
 
     /**
