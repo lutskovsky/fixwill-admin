@@ -5,7 +5,8 @@ import {ref} from 'vue';
 import {AgGridVue} from 'ag-grid-vue3';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-balham.css"; // Optional Theme applied to the Data Grid
-import Multiselect from 'vue-multiselect'
+import Multiselect from 'vue-multiselect';
+import {Head} from '@inertiajs/vue3';
 
 
 const AG_GRID_LOCALE_RU = {
@@ -573,6 +574,9 @@ const deletePreset = () => {
 </script>
 
 <template>
+
+    <Head title="Статистика"/>
+
     <div class="container-fluid py-4">
         <div class="row mb-4 ">
 
@@ -592,7 +596,7 @@ const deletePreset = () => {
                     <label class="form-check-label" for="open">Без периода</label>
                 </div>
             </div>
-            <template v-if="orderSelection !== 'all'">
+            <template v-if="orderSelection != 'all'">
                 <div class="col-md-3">
                     <div class="form-group form-inline">
                         <label class="form-label" for="start-date">Начало периода:</label>
