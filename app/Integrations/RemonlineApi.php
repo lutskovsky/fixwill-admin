@@ -63,11 +63,10 @@ class RemonlineApi
             return json_decode($response->getBody(), true);
         } catch (RequestException|ClientException $e) {
             if ($try > 5) {
-                $msg = $e->getMessage();
-                echo "$msg\n";
-                return false;
+                throw $e;
             }
 
+            sleep(1);
             $data['token'] = $this->getNewToken();
             return $this->apiCall($method, $data, $httpMethod, $try + 1);
 
