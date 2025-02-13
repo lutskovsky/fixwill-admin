@@ -63,7 +63,7 @@ class StatusCrudController extends CrudController
         CRUD::denyAccess('delete');
         CRUD::denyAccess('create');
         CRUD::denyAccess('show');
-        CRUD::addButton('top', 'sync', 'view', 'vendor.backpack.ui.inc.sync');
+        CRUD::addButton('top', 'sync', 'view', 'vendor.backpack.crud.buttons.sync-statuses');
 
         CRUD::column('status_name')->label('Статус');
 

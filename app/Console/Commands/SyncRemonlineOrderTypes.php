@@ -9,12 +9,11 @@ use Illuminate\Console\Command;
 class SyncRemonlineOrderTypes extends Command
 {
     protected $signature = 'order_types:sync';
-    protected $description = 'Sync statuses with Remonline API';
+    protected $description = 'Sync types with Remonline API';
 
     public function handle()
     {
         $apiTypes = RemonlineOrderType::all()->keyBy('id');
-
         foreach ($apiTypes as $apiType) {
 
             OrderType::updateOrCreate(

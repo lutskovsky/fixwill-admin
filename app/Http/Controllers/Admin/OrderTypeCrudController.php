@@ -62,7 +62,7 @@ class OrderTypeCrudController extends CrudController
         CRUD::denyAccess('delete');
         CRUD::denyAccess('create');
         CRUD::denyAccess('show');
-        CRUD::addButton('top', 'sync', 'view', 'vendor.backpack.ui.inc.sync');
+        CRUD::addButton('top', 'sync', 'view', 'vendor.backpack.crud.buttons.sync-types');
 
         CRUD::column('name')->label('Тип заказа');
 

@@ -139,6 +139,12 @@ return [
             'path' => storage_path('logs/comagic.log'),
             'level' => 'debug',
         ],
+        'info' => [
+            'driver' => 'single',
+            // or 'daily' if you want a new file per day
+            'path' => storage_path('logs/info.log'),
+            'level' => 'debug',
+        ],
 
     ],
 
