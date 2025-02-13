@@ -11,3 +11,5 @@
 <x-backpack::menu-item title="Сценарии" icon="la la-sitemap" :link="backpack_url('scenario')"/>
 
 <x-backpack::menu-item title="Статусы" icon="la la-stream" :link="backpack_url('status')"/>
+
+<x-backpack::menu-item title="Типы заказа" icon="la la-tags" :link="backpack_url('order-type')"/>

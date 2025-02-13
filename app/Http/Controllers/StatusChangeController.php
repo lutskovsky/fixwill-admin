@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
+use App\Models\OrderType;
+use App\Models\Status;
 use App\Models\StatusChange;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
@@ -28,21 +30,26 @@ class StatusChangeController extends Controller
             'order_id' => $orderId,
         ]);
 
-        // If not spam or duplicate
-        if ($newStatusId != 433229 && $newStatusId != 353142) {
-
-            $rem = new RemonlineApi();
-            $order = $rem->getOrderById($orderId)['data'];
-
-            // if no operator
-            if (!isset($order["custom_fields"]["f2129012"]) || !$order["custom_fields"]["f2129012"]) {
-                $token = config('telegramBots.notifications');
-                $botService = new TelegramBotService($token);
-                $msg = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> без оператора.";
-                $botService->sendMessage('-1002373384758', $msg);
-            }
+        $statusCheck = Status::where(['new_status_id' => $newStatusId, 'operator_required' => true])->first();
+        if (!$statusCheck) {
+            return response('OK', 200);
         }
 
-        return response()->json(['message' => 'Status change recorded successfully'], 200);
+        $rem = new RemonlineApi();
+        $order = $rem->getOrderById($orderId)['data'];
+        $orderType = $order['order_type']['id'];
+
+        $typeCheck = OrderType::where(['type_id' => $orderType, 'operator_required' => true])->first();
+        if (!$typeCheck) {
+            return response('OK', 200);
+        }
+
+        if (!isset($order["custom_fields"]["f2129012"]) || !$order["custom_fields"]["f2129012"]) {
+            $token = config('telegramBots.notifications');
+            $botService = new TelegramBotService($token);
+            $msg = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> без оператора.";
+            $botService->sendMessage('-1002373384758', $msg);
+        }
+        return response('OK', 200);
     }
 }

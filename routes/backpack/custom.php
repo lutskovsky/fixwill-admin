@@ -26,4 +26,5 @@ Route::group([
         'as' => 'sync.statuses',
     ])->middleware('web');
     Route::crud('status', 'StatusCrudController');
+    Route::crud('order-type', 'OrderTypeCrudController');
 }); // this should be the absolute last line of this file
