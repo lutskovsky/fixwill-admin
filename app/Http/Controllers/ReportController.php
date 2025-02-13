@@ -17,6 +17,8 @@ use Inertia\Inertia;
 class ReportController extends Controller
 {
 
+    const NA_PROZVON_STATUS = 1474412;
+
     public function show()
     {
         $orderStatuses = RemonlineOrderStatus::all(['id', 'name'])->toArray();
@@ -60,17 +62,24 @@ class ReportController extends Controller
 
             if ($orderSelection === 'transit') {
                 $transitStatuses = Status::where('transit', true)->pluck('status_id')->toArray();
-            } else {
-                $transitStatuses = [1474412];
-            }
 
-            $transitOrderIds = StatusChange::query()
-                ->join('statuses', 'status_changes.new_status_id', '=', 'statuses.status_id')
-                ->where('statuses.transit', true)
-                ->whereBetween('status_changes.created_at', [$startDate, $endDate])
-                ->distinct()
-                ->pluck('status_changes.order_id')
-                ->toArray();
+                $transitOrderIds = StatusChange::query()
+                    ->join('statuses', 'status_changes.new_status_id', '=', 'statuses.status_id')
+                    ->where('statuses.transit', true)
+                    ->whereBetween('status_changes.created_at', [$startDate, $endDate])
+                    ->distinct()
+                    ->pluck('status_changes.order_id')
+                    ->toArray();
+            } else {
+                $transitStatuses = [self::NA_PROZVON_STATUS];
+
+                $transitOrderIds = StatusChange::query()
+                    ->where('new_status_id', self::NA_PROZVON_STATUS)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->distinct()
+                    ->pluck('order_id')
+                    ->toArray();
+            }
 
             $query['ids'] = $transitOrderIds;
 
