@@ -239,17 +239,25 @@ class LogisticsBotController extends Controller
         $text .= "Этаж: {$floor}\n";
         $flat = $order['client']['custom_fields']['f3532130'] ?? '';
         $text .= "Квартира: {$flat}\n";
-        $text .= "Метро: {$order['client']['custom_fields']['f3452769']}\n";
-        $text .= "Оборудование: {$order['custom_fields']['f1070009']}\n";
-        $text .= "Бренд: {$order['custom_fields']['f1070012']}\n";
-        $text .= "Диагональ: {$order['custom_fields']['f1536267']}\n";
+        $metro = $order['client']['custom_fields']['f3452769'] ?? '';
+        $text .= "Метро: {$metro}\n";
+        $equipment = $order['custom_fields']['f1070009'] ?? '';
+        $text .= "Оборудование: {$equipment}\n";
+        $brand = $order['custom_fields']['f1070012'] ?? '';
+        $text .= "Бренд: {$brand}\n";
+        $diagonal = $order['custom_fields']['f1536267'] ?? '';
+        $text .= "Диагональ: {$diagonal}\n";
 
         if ($trip->direction == "привоз") {
-            $text .= "Неисправность: {$order['custom_fields']['f1078980']}\n";
-            $text .= "Примечание: {$order['custom_fields']['f1482266']}\n";
-            $text .= "Сайт: {$order['custom_fields']['f4196099']}\n";
+            $fault = $order['custom_fields']['f1078980'] ?? '';
+            $text .= "Неисправность: {$fault}\n";
+            $comment = $order['custom_fields']['f1482266'] ?? '';
+            $text .= "Примечание: {$comment}\n";
+            $site = $order['custom_fields']['f4196099'] ?? '';
+            $text .= "Сайт: {$site}\n";
         } else {
-            $text .= "Примечание: {$order['custom_fields']['f2045047']}\n";
+            $comment = $order['custom_fields']['f2045047'] ?? '';
+            $text .= "Примечание: {$comment}\n";
             $text .= "Предоплачено: {$order['payed']}\n";
             $toPay = $order['price'] - $order['payed'];
             $text .= "К оплате: {$toPay}\n";
