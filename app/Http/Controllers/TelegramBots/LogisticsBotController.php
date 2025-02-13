@@ -200,7 +200,7 @@ class LogisticsBotController extends Controller
 
         $warning = $trip->courier_id ? '' : " <b>(не пользуется ботом!)</b>";
 
-        $priority = $order['custom_fields']['f1617065'];
+        $priority = $order['custom_fields']['f1617065'] ?? null;
 
         $text = "";
 
