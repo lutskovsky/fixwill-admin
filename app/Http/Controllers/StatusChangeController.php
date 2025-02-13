@@ -30,7 +30,7 @@ class StatusChangeController extends Controller
             'order_id' => $orderId,
         ]);
 
-        $statusCheck = Status::where(['new_status_id' => $newStatusId, 'operator_required' => true])->first();
+        $statusCheck = Status::where(['status_id' => $newStatusId, 'operator_required' => true])->first();
         if (!$statusCheck) {
             return response('OK', 200);
         }
