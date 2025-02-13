@@ -7,9 +7,11 @@ use App\Models\RemonlineOrderStatus;
 use App\Models\RemonlineOrderType;
 use App\Models\ReportPreset;
 use App\Models\Status;
+use App\Models\StatusChange;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class ReportController extends Controller
@@ -47,11 +49,40 @@ class ReportController extends Controller
             'statuses' => $statuses
         ];
 
-        if (($orderSelection === 'closed')) {
+        if ($orderSelection === 'closed') {
             $query['closed_at'] = [$start, $end];
-        }
-        if (($orderSelection === 'created')) {
+        } elseif ($orderSelection === 'created') {
             $query['created_at'] = [$start, $end];
+        } elseif ($orderSelection === 'transit' || $orderSelection === 'prozvon') {
+            unset($query['statuses']);
+            $startDate = Carbon::parse($startDate . " 00:00:00");
+            $endDate = Carbon::parse($endDate . " 23:59:59");
+
+            if ($orderSelection === 'transit') {
+                $transitStatuses = Status::where('transit', true)->pluck('status_id')->toArray();
+            } else {
+                $transitStatuses = [1474412];
+            }
+
+            $transitOrderIds = StatusChange::query()
+                ->join('statuses', 'status_changes.new_status_id', '=', 'statuses.status_id')
+                ->where('statuses.transit', true)
+                ->whereBetween('status_changes.created_at', [$startDate, $endDate])
+                ->distinct()
+                ->pluck('status_changes.order_id')
+                ->toArray();
+
+            $query['ids'] = $transitOrderIds;
+
+            $orderStatusChanges = StatusChange::query()
+                ->whereIn('order_id', $transitOrderIds)
+                ->orderBy('created_at', 'asc') // Optional: order changes chronologically.
+                ->get()
+                ->groupBy('order_id')
+                ->map(function ($changes) {
+                    return $changes->toArray(); // Convert each group's collection to an array.
+                })
+                ->toArray();
         }
 
 
@@ -100,8 +131,30 @@ class ReportController extends Controller
             // прибыль = выр - стоимость всего
 
             $statusId = $order['status']['id'];
+
+            $orderId = $order['id'];
+            if ($orderSelection === 'transit') {
+                $accepted = 1;
+
+                $success = 0;
+                $transitFlag = false;
+                foreach ($orderStatusChanges[$orderId] as $change) {
+                    $changeStatusId = $change['new_status_id'];
+
+                    if (!$transitFlag && in_array($changeStatusId, $transitStatuses)) {
+                        $transitFlag = true;
+                    } elseif ($transitFlag && in_array($changeStatusId, $successfulStatuses)) {
+                        $success = 1;
+                    }
+                }
+
+            } else {
+                $accepted = (int)in_array($statusId, $acceptedStatuses);
+                $success = (int)in_array($statusId, $successfulStatuses);
+            }
+
             $item = [
-                'id' => $order['id'],
+                'id' => $orderId,
                 'label' => $order['id_label'],
                 'status' => $order['status']['name'] ?? null,
                 'closed_date' => $closedDate,
@@ -112,8 +165,8 @@ class ReportController extends Controller
                 'brand' => $order["custom_fields"]["f1070012"] ?? '',
                 'master' => $order["custom_fields"]["f5166933"] ?? '',
                 'operator' => $order["custom_fields"]["f2129012"] ?? '',
-                'accepted_by_operator' => (int)in_array($statusId, $acceptedStatuses),
-                'success_for_operator' => (int)in_array($statusId, $successfulStatuses),
+                'accepted_by_operator' => $accepted,
+                'success_for_operator' => $success,
                 'soglas' => $order["custom_fields"]["f3471787"] ?? '',
                 'site' => $order["custom_fields"]["f4196099"] ?? '',
                 'revenue' => $revenue,
@@ -129,4 +182,6 @@ class ReportController extends Controller
 
         echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
+
+
 }

@@ -592,11 +592,19 @@ const deletePreset = () => {
                     <label class="form-check-label" for="closed">Закрытые в период</label>
                 </div>
                 <div class="form-check">
-                    <input id="all" v-model="orderSelection" class="form-check-input" type="radio" value="open"/>
-                    <label class="form-check-label" for="open">Без периода</label>
+                    <input id="transit" v-model="orderSelection" class="form-check-input" type="radio" value="transit"/>
+                    <label class="form-check-label" for="transit">Переходные</label>
+                </div>
+                <div class="form-check">
+                    <input id="prozvon" v-model="orderSelection" class="form-check-input" type="radio" value="prozvon"/>
+                    <label class="form-check-label" for="prozvon">На прозвон</label>
+                </div>
+                <div class="form-check">
+                    <input id="all" v-model="orderSelection" class="form-check-input" type="radio" value="all"/>
+                    <label class="form-check-label" for="all">Без периода</label>
                 </div>
             </div>
-            <template v-if="orderSelection != 'all'">
+            <template v-if="orderSelection !== 'all'">
                 <div class="col-md-3">
                     <div class="form-group form-inline">
                         <label class="form-label" for="start-date">Начало периода:</label>
