@@ -24,6 +24,15 @@ class LogisticsBotController extends Controller
         $this->botService = new TelegramBotService($token);
     }
 
+    protected function getLabel($id, $label)
+    {
+        if ($this->mode == 'manager') {
+            return "<a href='https://web.remonline.app/orders/table/$id'>$label</a>";
+        } else {
+            return $label;
+        }
+    }
+
     public function handle(Request $request)
     {
         $data = $request->all();
@@ -161,7 +170,7 @@ class LogisticsBotController extends Controller
             foreach ($couriers as $courier => $trips) {
                 $courierText = "- $courier:\n";
                 foreach ($trips as $trip) {
-                    $courierText .= "<a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> ({$trip->direction}) - {$trip->status} /order_{$trip->order_id}\n";
+                    $courierText .= $this->getLabel($trip->order_id, $trip->order_label) . " ({$trip->direction}) - {$trip->status} /order_{$trip->order_id}\n";
                 }
 
                 if (mb_strlen($messageText . $courierText) > 4096) {
@@ -207,7 +216,7 @@ class LogisticsBotController extends Controller
         if ($priority) $text .= "!!!ПРИОРИТЕТНЫЙ ЗАКАЗ, ЗАБРАТЬ В ЛЮБОМ СЛУЧАЕ, НЕ ПЕРЕНОСИТЬ!!!\n";
 
         $text .= "<b>" . mb_strtoupper($trip->direction) . "</b>\n";
-        $text .= "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a>\n";
+        $text .= "Заказ " . $this->getLabel($orderId, $order['id_label']) . "\n";
 
         $text .= "Курьер: {$trip->courier}$warning\n";
         $text .= "Этап: {$trip->status}\n";
@@ -391,11 +400,11 @@ class LogisticsBotController extends Controller
 
         if ($action === 'set_status') {
             $trip->update(['status' => $value]);
-            $msg = "Этап заказа <a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> изменён на $value.";
+            $msg = "Этап заказа " . $this->getLabel($trip->order_id, $trip->order_label) . " изменён на $value.";
 
         } elseif ($action === 'set_arrival') {
             $trip->update(['arrival_time' => $value]);
-            $msg = "Время заказа <a href='https://web.remonline.app/orders/table/{$trip->order_id}'>{$trip->order_label}</a> изменено на $value.";
+            $msg = "Время заказа " . $this->getLabel($trip->order_id, $trip->order_label) . " изменено на $value.";
         }
 
 
@@ -446,7 +455,8 @@ class LogisticsBotController extends Controller
             }
 
             $options = [
-                'Забрал' => "success:$orderId:Забрал"];
+                'Забрал' => "success:$orderId:Забрал"
+            ];
 
             if ($trip->courier_type == 'мастер') {
                 $options['Взял >1000, не забрал'] = null;
@@ -481,7 +491,8 @@ class LogisticsBotController extends Controller
 
     private function complete(string $action, mixed $data, $trip, mixed $chatId, mixed $messageId)
     {
-        $successTemplate = "Модель -
+        if ($trip->courier_type == 'мастер') {
+            $successTemplate = "Модель -
 МКАД(ЦКАД) -
 Вес -
 Парковка -
@@ -493,6 +504,9 @@ class LogisticsBotController extends Controller
 Цена за работу (диагност) -
 Сроки (диагност)-
 Иное - ";
+        } else {
+            $successTemplate = "";
+        }
 
         $parts = explode(':', $data);
         if (count($parts) < 3) {
