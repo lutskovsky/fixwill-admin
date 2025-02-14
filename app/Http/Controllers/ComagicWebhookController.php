@@ -8,6 +8,7 @@ use App\Models\Status;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ComagicWebhookController extends Controller
 {
@@ -106,6 +107,7 @@ class ComagicWebhookController extends Controller
 
     public function create(Request $request)
     {
+        Log::channel('comagic')->info($request->query());
 
         $rem = new RemonlineApi();
 

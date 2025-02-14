@@ -128,13 +128,13 @@ return [
         ],
 
         'telegram' => [
-            'driver' => 'single',
+            'driver' => 'daily',
             'path' => storage_path('logs/telegram.log'),
             'level' => 'debug',
         ],
 
         'comagic' => [
-            'driver' => 'single',
+            'driver' => 'daily',
             // or 'daily' if you want a new file per day
             'path' => storage_path('logs/comagic.log'),
             'level' => 'debug',
