@@ -491,7 +491,7 @@ class LogisticsBotController extends Controller
 
     private function complete(string $action, mixed $data, $trip, mixed $chatId, mixed $messageId)
     {
-        if ($trip->courier_type == 'мастер') {
+        if ($trip->courier_type == 'мастер' && $trip->direction == "привоз") {
             $successTemplate = "Модель -
 МКАД(ЦКАД) -
 Вес -
@@ -529,7 +529,6 @@ class LogisticsBotController extends Controller
             'switch_inline_query_current_chat' => "/info:{$trip->order_id}:$status\n\n" . $template,
         ]]];
         $replyMarkup = ['inline_keyboard' => $buttons];
-        $this->botService->sendMessage($chatId, 'Для закрытия заказа нажмите на кнопку "Вставить шаблон", заполните его и отправьте сообщение.', $replyMarkup);
-
+        $this->botService->sendMessage($chatId, "Для закрытия заказа нажмите на кнопку \"Вставить шаблон\", заполните его и отправьте сообщение.\nПервую строку шаблона (начинается с @fixwill_logistics_bot /info) изменять нельзя!", $replyMarkup);
     }
 }

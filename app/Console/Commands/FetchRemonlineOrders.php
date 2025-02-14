@@ -71,7 +71,7 @@ class FetchRemonlineOrders extends Command
                 'courier' => $courierName,
                 'order_id' => $order['id'],
                 'courier_id' => $courier->id ?? null,
-                'courier_type' => $courierName,
+                'courier_type' => $order['custom_fields']['f1620346'] ?? '',
             ];
 
             $existingTrip = CourierTrip::where('order_id', $order['id'])
