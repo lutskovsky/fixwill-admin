@@ -2,6 +2,7 @@
 
 namespace App\Integrations;
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
@@ -43,6 +44,9 @@ class RemonlineApi
             ]
         );
         $result = json_decode($response->getBody(), true);
+        if (!$result || !isset($result['token'])) {
+            throw new Exception("Ошибка соединения с Ремонлайном");
+        }
         $this->token = $result['token'];
         return $this->token;
     }

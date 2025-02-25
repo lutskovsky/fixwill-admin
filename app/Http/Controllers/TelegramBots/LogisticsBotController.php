@@ -8,6 +8,7 @@ use App\Integrations\RemonlineApi;
 use App\Models\Courier;
 use App\Models\CourierTrip;
 use App\Services\Telegram\TelegramBotService;
+use Exception;
 use Illuminate\Http\Request;
 
 class LogisticsBotController extends Controller
@@ -15,6 +16,7 @@ class LogisticsBotController extends Controller
     const MANAGERS_CHAT = -1002214584408;
     protected TelegramBotService $botService;
     protected string|null $mode = null;
+    protected string|null $chatId = null;
 
     public function __construct()
     {
@@ -45,6 +47,7 @@ class LogisticsBotController extends Controller
 
         $message = $data['message']['text'] ?? null;
         $chatId = $data['message']['chat']['id'] ?? null;
+        $this->chatId = $chatId;
         $contact = $data['message']['contact'] ?? null;
         $username = $data['message']['from']['username'] ?? null;
 
@@ -144,10 +147,13 @@ class LogisticsBotController extends Controller
 
             $messageText = "Ваши заказы:\n";
             foreach ($trips as $trip) {
-
-                $remonline = new RemonlineApi();
-
-                $order = $remonline->getOrderById($trip->order_id)['data'];
+                try {
+                    $remonline = new RemonlineApi();
+                    $order = $remonline->getOrderById($trip->order_id)['data'];
+                } catch (Exception $e) {
+                    $this->sendError($e->getMessage());
+                    return;
+                }
                 $address = $order['client']['address'];
 
                 $messageText .= "\nЗаказ {$trip->order_label} ({$trip->direction}) - {$trip->status}\n";
@@ -196,9 +202,14 @@ class LogisticsBotController extends Controller
      */
     protected function showTripDetails($chatId, $orderId)
     {
-        $remonline = new RemonlineApi();
 
-        $order = $remonline->getOrderById($orderId)['data'];
+        try {
+            $remonline = new RemonlineApi();
+            $order = $remonline->getOrderById($orderId)['data'];
+        } catch (Exception $e) {
+            $this->sendError($e->getMessage());
+            return;
+        }
 
         $trip = CourierTrip::where('order_id', $orderId)->orderBy('id', 'DESC')->first();
 
@@ -219,6 +230,7 @@ class LogisticsBotController extends Controller
         $text .= "Заказ " . $this->getLabel($orderId, $order['id_label']) . "\n";
 
         $text .= "Курьер: {$trip->courier}$warning\n";
+        $text .= "Тип: {$trip->courier_type}\n";
         $text .= "Этап: {$trip->status}\n";
 
 
@@ -275,6 +287,8 @@ class LogisticsBotController extends Controller
         if ($result = $trip->result) {
             $text .= $result;
         }
+
+        $text = "<blockquote expandable>$text</blockquote>";
 
         $inlineKeyboard = $this->getInlineKeyboard($trip);
 
@@ -530,5 +544,10 @@ class LogisticsBotController extends Controller
         ]]];
         $replyMarkup = ['inline_keyboard' => $buttons];
         $this->botService->sendMessage($chatId, "Для закрытия заказа нажмите на кнопку \"Вставить шаблон\", заполните его и отправьте сообщение.\nПервую строку шаблона (начинается с @fixwill_logistics_bot /info) изменять нельзя!", $replyMarkup);
+    }
+
+    private function sendError($msg)
+    {
+        $this->botService->sendMessage($this->chatId, $msg);
     }
 }
