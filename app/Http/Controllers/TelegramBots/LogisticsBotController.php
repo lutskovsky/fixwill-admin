@@ -202,6 +202,9 @@ class LogisticsBotController extends Controller
      */
     public function showTripDetails($chatId, $orderId, $new = false)
     {
+        if ($new) {
+            $this->mode = 'courier';
+        }
 
         try {
             $remonline = new RemonlineApi();
