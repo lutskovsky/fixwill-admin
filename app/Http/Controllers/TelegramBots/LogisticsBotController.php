@@ -200,7 +200,7 @@ class LogisticsBotController extends Controller
     /**
      * Show detailed info about a single trip, plus inline buttons.
      */
-    protected function showTripDetails($chatId, $orderId)
+    public function showTripDetails($chatId, $orderId, $new = false)
     {
 
         try {
@@ -290,6 +290,10 @@ class LogisticsBotController extends Controller
 
         $text = "<blockquote expandable>$text</blockquote>";
 
+        if ($new) {
+            $text = "Новый {$trip->direction}!\n" . $text;
+        }
+
         $inlineKeyboard = $this->getInlineKeyboard($trip);
 
         if ($this->mode == 'courier') {
@@ -336,10 +340,6 @@ class LogisticsBotController extends Controller
         }
 
         switch ($action) {
-            case 'change_status':
-                $this->showStatusOptions($chatId, $orderId, $trip->direction);
-                break;
-
             case 'change_arrival':
                 $this->showArrivalOptions($chatId, $orderId);
                 break;
@@ -369,8 +369,8 @@ class LogisticsBotController extends Controller
     protected function showStatusOptions($chatId, $orderId, $direction)
     {
         $statuses = [
-            'привоз' => ['Назначен', 'Забрал', 'Взял >1000, не забрал', 'Отказ'],
-            'отвоз' => ['Назначен', 'Отдал товар', 'Проблемная доставка'],
+            'привоз' => ['Назначен', '✅ Забрал', '💵 Взял >1000, не забрал', '❌ Отказ'],
+            'отвоз' => ['Назначен', '✅ Отдал товар', '⚠️ Проблемная доставка'],
         ];
         $buttons = [];
         foreach ($statuses[$direction] as $status) {
@@ -414,11 +414,11 @@ class LogisticsBotController extends Controller
 
         if ($action === 'set_status') {
             $trip->update(['status' => $value]);
-            $msg = "Этап заказа " . $this->getLabel($trip->order_id, $trip->order_label) . " изменён на $value.";
+            $msg = $this->getLabel($trip->order_id, $trip->order_label) . "  $value.";
 
         } elseif ($action === 'set_arrival') {
             $trip->update(['arrival_time' => $value]);
-            $msg = "Время заказа " . $this->getLabel($trip->order_id, $trip->order_label) . " изменено на $value.";
+            $msg = "⏱️ Время заказа " . $this->getLabel($trip->order_id, $trip->order_label) . " изменено на $value.";
         }
 
 
@@ -469,21 +469,21 @@ class LogisticsBotController extends Controller
             }
 
             $options = [
-                'Забрал' => "success:$orderId:Забрал"
+                '✅ Забрал' => "success:$orderId:✅ Забрал"
             ];
 
             if ($trip->courier_type == 'мастер') {
-                $options['Взял >1000, не забрал'] = null;
+                $options['💵 Взял >1000, не забрал'] = null;
             }
-            $options['Перенести время'] = "change_arrival:$orderId";
-            $options['Отказ'] = "fail:$orderId:Отказ";
+            $options['⏱️ Перенести время'] = "change_arrival:$orderId";
+            $options['❌ Отказ'] = "fail:$orderId:❌ Отказ";
 
 
         } else {
             $options = [
-                'Отдал товар' => "success:$orderId:Отдал товар",
+                '✅ Отдал товар' => "success:$orderId:✅ Отдал товар",
 //                'Перенести время' => "change_arrival:$orderId",
-                'Проблемная доставка' => "fail:$orderId:Проблемная доставка"
+                '⚠️ Проблемная доставка' => "fail:$orderId:⚠️ Проблемная доставка"
             ];
         }
 
@@ -493,7 +493,7 @@ class LogisticsBotController extends Controller
             }
 
             $buttons[] = [[
-                'text' => ucfirst($status),
+                'text' => $status,
                 'callback_data' => $callback
             ]];
         }

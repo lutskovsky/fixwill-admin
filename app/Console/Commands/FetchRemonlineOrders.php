@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\TelegramBots\LogisticsBotController;
 use App\Integrations\RemonlineApi;
 use App\Models\Courier;
 use App\Models\CourierTrip;
@@ -103,10 +104,13 @@ class FetchRemonlineOrders extends Command
             }
 
             if ($courier->chat_id && $notifyFlag) {
-                $messageText = "Новый {$direction}\n";
-                $messageText .= "{$order['client']['address']}\n";
-                $messageText .= "Подробнее: /order_{$order['id']}\n";
-                $botService->sendMessage($courier->chat_id, $messageText);
+                $bot = new LogisticsBotController();
+                $bot->showTripDetails($courier->chat_id, $order['id'], true);
+
+//                $messageText = "Новый {$direction}\n";
+//                $messageText .= "{$order['client']['address']}\n";
+//                $messageText .= "Подробнее: /order_{$order['id']}\n";
+//                $botService->sendMessage($courier->chat_id, $messageText);
             }
         }
 
