@@ -35,7 +35,6 @@ class EmployeeCallController extends Controller
         // Get the employee's virtual numbers
         $extension = $user->internal_phone;
 
-
         // Validate the required parameters
         if (empty($contactPhoneNumber)) {
             return response('Invalid parameters', 400);
@@ -93,11 +92,8 @@ class EmployeeCallController extends Controller
             return response()->json(['message' => 'Пользователь не вошёл в систему'], 404);
         }
 
-        // Get the employee's virtual numbers
         $extension = $courier->internal_phone;
 
-
-        // Validate the required parameters
         if (empty($contactPhoneNumber)) {
             return response('Invalid parameters', 400);
         }
@@ -107,8 +103,6 @@ class EmployeeCallController extends Controller
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
 
         $call = $client->call('data', 'get.employees');
-
-        if (isset($call['error'])) return response('Comagic error', 200);
 
         $employees = $call['result']['data'];
         $id = 0;
@@ -128,9 +122,9 @@ class EmployeeCallController extends Controller
             ]
         ];
 
-        $call = $client->call('call', 'start.employee_call', $callParams);
+        $result = $client->call('call', 'start.employee_call', $callParams);
         Log::channel('comagic')->info($call);
 
-        return response('OK', 200);
+        return $result;
     }
 }

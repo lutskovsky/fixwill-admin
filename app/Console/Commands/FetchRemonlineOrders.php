@@ -104,8 +104,8 @@ class FetchRemonlineOrders extends Command
             }
 
             if ($courier->chat_id && $notifyFlag) {
-                $bot = new LogisticsBotController();
-                $bot->showTripDetails($courier->chat_id, $order['id'], true);
+                $bot = new LogisticsBotController($courier->chat_id);
+                $bot->showTripDetails($order['id'], true);
 
 //                $messageText = "Новый {$direction}\n";
 //                $messageText .= "{$order['client']['address']}\n";

@@ -7,7 +7,6 @@ use GuzzleHttp\Client;
 
 class ComagicClient
 {
-    public array $latestFullResponse;
     private Client $HttpClient;
     private string $token;
     private string $url = 'https://callapi.comagic.ru/v4.0';
@@ -26,7 +25,7 @@ class ComagicClient
         } elseif ($api == 'data') {
             $url = 'https://dataapi.comagic.ru/v2.0';
         } else {
-            throw  new Exception('Unknown API type');
+            throw new Exception('Unknown API type');
         }
 
         $request = [
@@ -41,9 +40,9 @@ class ComagicClient
         $response = json_decode($responseStr, true);
 
 //        $this->latestFullResponse = $response;
-//        if (isset($response['error'])) {
-//            throw new \Exception($response['error']['message']);
-//        }
+        if (isset($response['error'])) {
+            throw new Exception($response['error']['message']);
+        }
         return $response; //['result']['data'];
     }
 

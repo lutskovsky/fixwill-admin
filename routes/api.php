@@ -23,6 +23,7 @@ Route::prefix('webhook')->group(function () {
         Route::get('create-order', [ComagicWebhookController::class, 'create']);
     });
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
+    Route::get('courier_error', [ComagicWebhookController::class, 'reportCourierCallError']);
 
     Route::post('status-change', [StatusChangeController::class, 'store']);
 

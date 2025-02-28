@@ -12,6 +12,7 @@
         "backpack/theme-tabler": "^1.2",
         "calebporzio/sushi": "^2.5",
         "inertiajs/inertia-laravel": "^1.0",
+        "irazasyed/telegram-bot-sdk": "^3.15",
         "katoni/php-ffx": "^1.0",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",

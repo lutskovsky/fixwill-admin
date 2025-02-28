@@ -10,6 +10,7 @@ use App\Models\CourierTrip;
 use App\Services\Telegram\TelegramBotService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class LogisticsBotController extends Controller
 {
@@ -18,8 +19,10 @@ class LogisticsBotController extends Controller
     protected string|null $mode = null;
     protected string|null $chatId = null;
 
-    public function __construct()
+    public function __construct($chatId = null)
     {
+        $this->chatId = $chatId;
+
         // Retrieve the token for the logistics bot
         $token = config('telegramBots.logistics');
         // Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
@@ -46,32 +49,31 @@ class LogisticsBotController extends Controller
         }
 
         $message = $data['message']['text'] ?? null;
-        $chatId = $data['message']['chat']['id'] ?? null;
-        $this->chatId = $chatId;
+        $this->chatId = $data['message']['chat']['id'] ?? null;
         $contact = $data['message']['contact'] ?? null;
         $username = $data['message']['from']['username'] ?? null;
 
-        if ($chatId == self::MANAGERS_CHAT) {
+        if ($this->chatId == self::MANAGERS_CHAT) {
             $this->mode = 'manager';
             $courier = null;
         } else {
             $this->mode = 'courier';
 
             if ($message === '/start') {
-                $this->botService->requestPhoneNumber($chatId);
+                $this->botService->requestPhoneNumber($this->chatId);
                 return response('OK', 200);
             }
 
             if ($contact) {
                 $phoneNumber = $contact['phone_number'];
-                $this->botService->processPhoneNumber($phoneNumber, $chatId, 'Courier');
+                $this->botService->processPhoneNumber($phoneNumber, $this->chatId, 'Courier');
                 return response('OK', 200);
             }
 
-            if ($chatId) {
-                $courier = Courier::where('chat_id', $chatId)->first();
+            if ($this->chatId) {
+                $courier = Courier::where('chat_id', $this->chatId)->first();
                 if (!$courier) {
-                    $this->botService->sendMessage($chatId, "Не знаю, кто вы, пожалуйста, отправьте /start и поделитесь номером.");
+                    $this->botService->sendMessage($this->chatId, "Не знаю, кто вы, пожалуйста, отправьте /start и поделитесь номером.");
                     return response('OK', 200);
                 }
             }
@@ -92,26 +94,25 @@ class LogisticsBotController extends Controller
 
             $trip->update(['result' => $resultMsg, 'active' => false]);
 
-            $this->applyChange('set_status', "set_status:$orderId:$status", $trip, $chatId);
-//            $this->botService->sendMessage($chatId, $message);
+            $this->applyChange('set_status', "set_status:$orderId:$status", $trip);
         }
 
 
         if ($message === '/active') {
             // ... Show short list of user's trips ...
-            $this->listAllTripsShort($courier, $chatId, true);
+            $this->listAllTripsShort($courier, true);
             return response('OK', 200);
         }
 
         if ($message === '/history') {
             // ... Show short list of user's trips ...
-            $this->listAllTripsShort($courier, $chatId, false);
+            $this->listAllTripsShort($courier, false);
             return response('OK', 200);
         }
 
         if ($message && preg_match('/^\/order_(\d+)$/', $message, $matches)) {
             $orderId = $matches[1];
-            $this->showTripDetails($chatId, $orderId);
+            $this->showTripDetails($this->chatId, $orderId);
             return response('OK', 200);
         }
 
@@ -131,7 +132,7 @@ class LogisticsBotController extends Controller
     /**
      * Show a short list of the user’s trips in one message.
      */
-    protected function listAllTripsShort(Courier|null $courier, $chatId, $onlyActive)
+    protected function listAllTripsShort(Courier|null $courier, $onlyActive)
     {
         if ($courier) {
             if ($onlyActive) {
@@ -151,7 +152,7 @@ class LogisticsBotController extends Controller
                     $remonline = new RemonlineApi();
                     $order = $remonline->getOrderById($trip->order_id)['data'];
                 } catch (Exception $e) {
-                    $this->sendError($e->getMessage());
+                    $this->sendMsg($e->getMessage());
                     return;
                 }
                 $address = $order['client']['address'];
@@ -160,7 +161,7 @@ class LogisticsBotController extends Controller
                 $messageText .= "$address\n";
                 $messageText .= "Подробнее: /order_{$trip->order_id}\n";
             }
-        } elseif ($chatId == self::MANAGERS_CHAT) {
+        } elseif ($this->chatId == self::MANAGERS_CHAT) {
             $messageText = "";
 
 
@@ -180,7 +181,7 @@ class LogisticsBotController extends Controller
                 }
 
                 if (mb_strlen($messageText . $courierText) > 4096) {
-                    $this->botService->sendMessage($chatId, $messageText);
+                    $this->botService->sendMessage($this->chatId, $messageText);
                     $messageText = "";
                 }
                 $messageText .= $courierText . "\n";
@@ -191,16 +192,16 @@ class LogisticsBotController extends Controller
         }
 
         if ($trips->isEmpty()) {
-            $this->botService->sendMessage($chatId, "Нет заказов");
+            $this->botService->sendMessage($this->chatId, "Нет заказов");
             return;
         }
-        $this->botService->sendMessage($chatId, $messageText);
+        $this->botService->sendMessage($this->chatId, $messageText);
     }
 
     /**
      * Show detailed info about a single trip, plus inline buttons.
      */
-    public function showTripDetails($chatId, $orderId, $new = false)
+    public function showTripDetails($orderId, $new = false)
     {
         if ($new) {
             $this->mode = 'courier';
@@ -210,14 +211,14 @@ class LogisticsBotController extends Controller
             $remonline = new RemonlineApi();
             $order = $remonline->getOrderById($orderId)['data'];
         } catch (Exception $e) {
-            $this->sendError($e->getMessage());
+            $this->sendMsg($e->getMessage());
             return;
         }
 
         $trip = CourierTrip::where('order_id', $orderId)->orderBy('id', 'DESC')->first();
 
         if (!$trip) {
-            $this->botService->sendMessage($chatId, "Заказ не найден.");
+            $this->botService->sendMessage($this->chatId, "Заказ не найден.");
             return;
         }
 
@@ -310,7 +311,7 @@ class LogisticsBotController extends Controller
         }
 
         $replyMarkup = ['inline_keyboard' => $inlineKeyboard];
-        $this->botService->sendMessage($chatId, $text, $replyMarkup);
+        $this->botService->sendMessage($this->chatId, $text, $replyMarkup);
     }
 
     /**
@@ -320,7 +321,7 @@ class LogisticsBotController extends Controller
     {
         $callbackQuery = $update['callback_query'];
         $data = $callbackQuery['data'] ?? null;
-        $chatId = $callbackQuery['message']['chat']['id'];
+        $this->chatId = $callbackQuery['message']['chat']['id'];
         $messageId = $callbackQuery['message']['message_id'];
 
         if (!$data) {
@@ -332,33 +333,33 @@ class LogisticsBotController extends Controller
 
         if ($action == 'call') {
 
-            $this->call($data, $chatId);
+            $this->call($data);
             return;
         }
 
         if (!$trip) {
             // You might want to answerCallbackQuery here
-            $this->botService->sendMessage($chatId, "Заказ не найден :(");
+            $this->botService->sendMessage($this->chatId, "Заказ не найден :(");
             return;
         }
 
         switch ($action) {
             case 'change_arrival':
-                $this->showArrivalOptions($chatId, $orderId);
+                $this->showArrivalOptions($orderId);
                 break;
 
             case 'set_status':
             case 'set_arrival':
-            $this->applyChange($action, $data, $trip, $chatId);
+            $this->applyChange($action, $data, $trip);
                 break;
             case 'success':
             case 'fail':
-                $this->complete($action, $data, $trip, $chatId, $messageId);
+            $this->complete($action, $data, $trip);
 
         }
     }
 
-    protected function call($data, $chatId)
+    protected function call($data)
     {
         $parts = explode(':', $data);
         if (count($parts) < 2) {
@@ -366,28 +367,25 @@ class LogisticsBotController extends Controller
         }
 
         $phone = $parts[1];
-        EmployeeCallController::courierCall($phone, $chatId);
-    }
 
-    protected function showStatusOptions($chatId, $orderId, $direction)
-    {
-        $statuses = [
-            'привоз' => ['Назначен', '✅ Забрал', '💵 Взял >1000, не забрал', '❌ Отказ'],
-            'отвоз' => ['Назначен', '✅ Отдал товар', '⚠️ Проблемная доставка'],
-        ];
-        $buttons = [];
-        foreach ($statuses[$direction] as $status) {
-            $buttons[] = [[
-                'text' => ucfirst($status),
-                'callback_data' => "set_status:$orderId:$status"
-            ]];
+        if (Cache::has('call_cooldown_' . $this->chatId)) {
+            $this->sendMsg("Не чаще одного звонка в 5 секунд!");
+        } else {
+            try {
+                $result = EmployeeCallController::courierCall($phone, $this->chatId);
+                Cache::put('call_cooldown_' . $this->chatId, true, 5);
+                $sessionId = $result['result']['data']['call_session_id'];
+                Cache::put('call_session_' . $sessionId, $this->chatId, 5 * 60);
+            } catch (Exception $e) {
+                $this->sendMsg("Не получилось запустить звонок: " . $e->getMessage());
+                return;
+            }
+
+            $this->sendMsg("Звонок запущен, ждите. Session ID $sessionId");
         }
-
-        $replyMarkup = ['inline_keyboard' => $buttons];
-        $this->botService->sendMessage($chatId, 'Выберите Этап:', $replyMarkup);
     }
 
-    protected function showArrivalOptions($chatId, $orderId)
+    protected function showArrivalOptions($orderId)
     {
         $arrivalIntervals = ['9-12', '12-15', '15-18', '18-21'];
         $buttons = [];
@@ -399,13 +397,13 @@ class LogisticsBotController extends Controller
         }
 
         $replyMarkup = ['inline_keyboard' => $buttons];
-        $this->botService->sendMessage($chatId, 'Выберите интервал:', $replyMarkup);
+        $this->botService->sendMessage($this->chatId, 'Выберите интервал:', $replyMarkup);
     }
 
     /**
      * Apply the chosen status or arrival interval to the trip.
      */
-    protected function applyChange($action, $data, CourierTrip $trip, $chatId)
+    protected function applyChange($action, $data, CourierTrip $trip)
     {
         // data is like "set_status:delivered:123" or "set_arrival:9-12:123"
         $parts = explode(':', $data);
@@ -427,8 +425,8 @@ class LogisticsBotController extends Controller
 
         if (isset($msg)) {
             $msg .= "\n/order_{$trip->order_id}";
-            $this->botService->sendMessage($chatId, $msg);
-            if ($chatId !== self::MANAGERS_CHAT) {
+            $this->botService->sendMessage($this->chatId, $msg);
+            if ($this->chatId !== self::MANAGERS_CHAT) {
                 $this->botService->sendMessage(self::MANAGERS_CHAT, $msg);
             }
         }
@@ -506,7 +504,7 @@ class LogisticsBotController extends Controller
 
     }
 
-    private function complete(string $action, mixed $data, $trip, mixed $chatId, mixed $messageId)
+    private function complete(string $action, mixed $data, $trip)
     {
         if ($trip->courier_type == 'мастер' && $trip->direction == "привоз") {
             $successTemplate = "Модель -
@@ -546,10 +544,10 @@ class LogisticsBotController extends Controller
             'switch_inline_query_current_chat' => "/info:{$trip->order_id}:$status\n\n" . $template,
         ]]];
         $replyMarkup = ['inline_keyboard' => $buttons];
-        $this->botService->sendMessage($chatId, "Для закрытия заказа нажмите на кнопку \"Вставить шаблон\", заполните его и отправьте сообщение.\nПервую строку шаблона (начинается с @fixwill_logistics_bot /info) изменять нельзя!", $replyMarkup);
+        $this->botService->sendMessage($this->chatId, "Для закрытия заказа нажмите на кнопку \"Вставить шаблон\", заполните его и отправьте сообщение.\nПервую строку шаблона (начинается с @fixwill_logistics_bot /info) изменять нельзя!", $replyMarkup);
     }
 
-    private function sendError($msg)
+    private function sendMsg($msg)
     {
         $this->botService->sendMessage($this->chatId, $msg);
     }

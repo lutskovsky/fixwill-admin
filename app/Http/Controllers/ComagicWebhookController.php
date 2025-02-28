@@ -8,6 +8,7 @@ use App\Models\Status;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ComagicWebhookController extends Controller
@@ -188,5 +189,15 @@ class ComagicWebhookController extends Controller
             'custom_fields' => $customFields
         ]);
         return response('Order created', 200);
+    }
+
+    public function reportCourierCallError(Request $request)
+    {
+        $sessionId = $request->query("call_session_id");
+        if ($chatId = Cache::pull('call_session_' . $sessionId)) {
+            $botService = new TelegramBotService(config('telegramBots.logistics'));
+            $botService->sendMessage($chatId, "Не получилось совершить звонок: " . $request->query("lost_reason"));
+            $botService->sendMessage(-4687255586, $request->query("text"));
+        }
     }
 }
