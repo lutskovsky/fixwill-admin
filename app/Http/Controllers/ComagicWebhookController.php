@@ -197,7 +197,8 @@ class ComagicWebhookController extends Controller
         if ($chatId = Cache::pull('call_session_' . $sessionId)) {
             $botService = new TelegramBotService(config('telegramBots.logistics'));
             $botService->sendMessage($chatId, "Не получилось совершить звонок: " . $request->query("lost_reason"));
-            $botService->sendMessage(-4687255586, $request->query("text"));
+            $botService = new TelegramBotService(config('telegramBots.notifications'));
+            $botService->sendMessage("-4687255586", $request->query("text"));
         }
     }
 }

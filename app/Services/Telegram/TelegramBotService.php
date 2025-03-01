@@ -54,6 +54,20 @@ class TelegramBotService
         return $response->successful();
     }
 
+    public function answerCallbackQuery($id, string $text): bool
+    {
+        $url = 'https://api.telegram.org/bot' . $this->token . '/answerCallbackQuery';
+
+        $data = [
+            'callback_query_id' => $id,
+            'text' => $text
+        ];
+
+        $response = Http::post($url, $data);
+
+        return $response->successful();
+    }
+
     /**
      * Process phone number: register the user’s Telegram chat_id by matching phone number to tg_login.
      */

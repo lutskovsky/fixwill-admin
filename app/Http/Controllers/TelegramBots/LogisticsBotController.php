@@ -112,7 +112,7 @@ class LogisticsBotController extends Controller
 
         if ($message && preg_match('/^\/order_(\d+)$/', $message, $matches)) {
             $orderId = $matches[1];
-            $this->showTripDetails($this->chatId, $orderId);
+            $this->showTripDetails($orderId);
             return response('OK', 200);
         }
 
@@ -209,7 +209,8 @@ class LogisticsBotController extends Controller
 
         try {
             $remonline = new RemonlineApi();
-            $order = $remonline->getOrderById($orderId)['data'];
+            $order = $remonline->getOrderById($orderId);
+            $order = $order['data'];
         } catch (Exception $e) {
             $this->sendMsg($e->getMessage());
             return;
@@ -320,6 +321,7 @@ class LogisticsBotController extends Controller
     protected function handleCallback(array $update)
     {
         $callbackQuery = $update['callback_query'];
+        $callbackQueryId = $callbackQuery['id'];
         $data = $callbackQuery['data'] ?? null;
         $this->chatId = $callbackQuery['message']['chat']['id'];
         $messageId = $callbackQuery['message']['message_id'];
@@ -333,7 +335,7 @@ class LogisticsBotController extends Controller
 
         if ($action == 'call') {
 
-            $this->call($data);
+            $this->call($data, $callbackQueryId);
             return;
         }
 
@@ -359,7 +361,7 @@ class LogisticsBotController extends Controller
         }
     }
 
-    protected function call($data)
+    protected function call($data, $callbackQueryId)
     {
         $parts = explode(':', $data);
         if (count($parts) < 2) {
@@ -371,9 +373,9 @@ class LogisticsBotController extends Controller
         if (Cache::has('call_cooldown_' . $this->chatId)) {
             $this->sendMsg("Не чаще одного звонка в 5 секунд!");
         } else {
+            Cache::put('call_cooldown_' . $this->chatId, true, 5);
             try {
                 $result = EmployeeCallController::courierCall($phone, $this->chatId);
-                Cache::put('call_cooldown_' . $this->chatId, true, 5);
                 $sessionId = $result['result']['data']['call_session_id'];
                 Cache::put('call_session_' . $sessionId, $this->chatId, 5 * 60);
             } catch (Exception $e) {
@@ -381,7 +383,8 @@ class LogisticsBotController extends Controller
                 return;
             }
 
-            $this->sendMsg("Звонок запущен, ждите. Session ID $sessionId");
+            $this->botService->answerCallbackQuery($callbackQueryId, "Звонок запущен, ждите. Session ID $sessionId");
+//            $this->sendMsg("Звонок запущен, ждите. Session ID $sessionId");
         }
     }
 
