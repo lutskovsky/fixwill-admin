@@ -336,6 +336,9 @@ class LogisticsBotController extends Controller
         if ($action == 'call') {
 
             $this->call($data, $callbackQueryId);
+
+            $notificationBot = new TelegramBotService(config('telegramBots.notifications'));
+            $notificationBot->sendMessage("-4687255586");
             return;
         }
 
@@ -534,9 +537,9 @@ class LogisticsBotController extends Controller
 
         if ($action == 'success') {
             $template = $successTemplate;
-        } elseif ($status == 'Отказ') {
+        } elseif ($status == '❌ Отказ') {
             $template = "Причина отказа - ";
-        } elseif ($status == 'Проблемная доставка') {
+        } elseif ($status == '⚠️ Проблемная доставка') {
             $template = "Причина возврата - ";
         } else {
             return;
