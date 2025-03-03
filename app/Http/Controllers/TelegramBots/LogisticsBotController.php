@@ -337,8 +337,8 @@ class LogisticsBotController extends Controller
 
             $this->call($data, $callbackQueryId);
 
-            $notificationBot = new TelegramBotService(config('telegramBots.notifications'));
-            $notificationBot->sendMessage("-4687255586");
+//            $notificationBot = new TelegramBotService(config('telegramBots.notifications'));
+//            $notificationBot->sendMessage("-4687255586");
             return;
         }
 
@@ -375,6 +375,9 @@ class LogisticsBotController extends Controller
 
         if (Cache::has('call_cooldown_' . $this->chatId)) {
             $this->sendMsg("Не чаще одного звонка в 5 секунд!");
+
+            return response('OK', 200);
+
         } else {
             Cache::put('call_cooldown_' . $this->chatId, true, 5);
             try {
@@ -383,10 +386,13 @@ class LogisticsBotController extends Controller
                 Cache::put('call_session_' . $sessionId, $this->chatId, 5 * 60);
             } catch (Exception $e) {
                 $this->sendMsg("Не получилось запустить звонок: " . $e->getMessage());
-                return;
+
+                return response('OK', 200);
             }
 
             $this->botService->answerCallbackQuery($callbackQueryId, "Звонок запущен, ждите. Session ID $sessionId");
+
+            return response('OK', 200);
 //            $this->sendMsg("Звонок запущен, ждите. Session ID $sessionId");
         }
     }
