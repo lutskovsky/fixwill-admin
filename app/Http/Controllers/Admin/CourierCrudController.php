@@ -107,6 +107,18 @@ class CourierCrudController extends CrudController
                 'label' => 'Номер телефона аккаунта Telegram',
                 'priority' => 10,
             ],
+            [
+                'name' => 'sip_line_id',
+                'type' => 'select',
+                'label' => 'SIP-линия',
+                'model' => "App\Models\SipLine", // related model
+                'attribute' => 'employee_name',
+                'options' => (function ($query) {
+                    return $query->orderBy('employee_name', 'ASC')->get();
+                }),
+                'priority' => 10,
+            ],
+
 
         ]);
 

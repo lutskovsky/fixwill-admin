@@ -5,6 +5,7 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Courier extends Model
 {
@@ -18,5 +19,11 @@ class Courier extends Model
         'internal_phone',
         'tg_login',
         'chat_id',
+        'sip_line_id',
     ];
+
+    public function sipLine(): BelongsTo
+    {
+        return $this->belongsTo(SipLine::class);
+    }
 }
