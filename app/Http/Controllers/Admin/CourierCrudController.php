@@ -54,9 +54,18 @@ class CourierCrudController extends CrudController
                 'type' => 'text',
             ],
             [
-                'name' => 'internal_phone',
-                'label' => 'Внутренний номер',
+                'name' => 'sip_line_id',
+                'type' => 'select',
+                'label' => 'SIP-линия',
+                'model' => "App\Models\SipLine", // related model
+                'entity' => 'sipLine',
+                'attribute' => 'description',
+                'priority' => 10,
             ],
+//            [
+//                'name' => 'internal_phone',
+//                'label' => 'Внутренний номер',
+//            ],
             [
                 'name' => 'tg_login',
                 'label' => 'Номер телефона аккаунта Telegram',
@@ -93,29 +102,27 @@ class CourierCrudController extends CrudController
                 'label' => "Имя курьера в Реме",
                 'type' => 'select_from_array',
                 'name' => 'name',
-//                'attribute' => 'title', // foreign key attribute that is shown to user
-//                'model' => "App\Models\RemonlineCourier", // foreign key model
                 'allows_null' => true, // Optional: Allow no selection
                 'options' => $this->getCouriers(),
-            ],
-            [
-                'name' => 'internal_phone',
-                'label' => 'Внутренний номер',
-            ],
-            [
-                'name' => 'tg_login',
-                'label' => 'Номер телефона аккаунта Telegram',
-                'priority' => 10,
             ],
             [
                 'name' => 'sip_line_id',
                 'type' => 'select',
                 'label' => 'SIP-линия',
                 'model' => "App\Models\SipLine", // related model
-                'attribute' => 'employee_name',
+                'attribute' => 'description',
                 'options' => (function ($query) {
                     return $query->orderBy('employee_name', 'ASC')->get();
                 }),
+                'priority' => 10,
+            ],
+//            [
+//                'name' => 'internal_phone',
+//                'label' => 'Внутренний номер',
+//            ],
+            [
+                'name' => 'tg_login',
+                'label' => 'Номер телефона аккаунта Telegram',
                 'priority' => 10,
             ],
 
