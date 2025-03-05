@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Alert;
 use App\Http\Requests\CourierRequest;
 use App\Integrations\RemonlineApi;
 use App\Models\Courier;
@@ -13,6 +14,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Exception;
+use Illuminate\Support\Facades\Artisan;
 
 /**
  * Class CourierCrudController
@@ -39,6 +42,17 @@ class CourierCrudController extends CrudController
         CRUD::setEntityNameStrings('курьер', 'курьеры');
     }
 
+    public function syncSip()
+    {
+        try {
+            Artisan::call('comagic:sync-sip-lines');
+            Alert::success('Sip lines synced successfully!')->flash();
+        } catch (Exception $e) {
+            Alert::error('Sync failed: ' . $e->getMessage())->flash();
+        }
+        return redirect()->back();
+    }
+
     /**
      * Define what happens when the List operation is loaded.
      *
@@ -47,6 +61,9 @@ class CourierCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+
+        CRUD::addButton('top', 'syncSip', 'view', 'vendor.backpack.crud.buttons.sync-sip');
+
         $this->crud->addColumns([
             [
                 'name' => 'name',
@@ -60,6 +77,15 @@ class CourierCrudController extends CrudController
                 'model' => "App\Models\SipLine", // related model
                 'entity' => 'sipLine',
                 'attribute' => 'description',
+                'priority' => 10,
+            ],
+            [
+                'name' => 'virtual_number',
+                'type' => 'select',
+                'label' => 'АОН',
+                'model' => "App\Models\SipLine", // related model
+                'entity' => 'sipLine',
+                'attribute' => 'virtual_number',
                 'priority' => 10,
             ],
 //            [

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Integrations\ComagicClient;
 use App\Models\Courier;
+use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -82,7 +83,7 @@ class EmployeeCallController extends Controller
 
     public static function courierCall($contactPhoneNumber, $chatId)
     {
-        $virtualNumber = '74954893455';
+//        $virtualNumber = '74954893455';
 
 
         $courier = Courier::where('chat_id', $chatId)->first();
@@ -92,7 +93,9 @@ class EmployeeCallController extends Controller
             return response()->json(['message' => 'Пользователь не вошёл в систему'], 404);
         }
 
-        $extension = $courier->internal_phone;
+        if (!($sip = $courier->sipLine)) {
+            throw new Exception("Не привязана SIP-линия к курьеру");
+        }
 
         if (empty($contactPhoneNumber)) {
             return response('Invalid parameters', 400);
@@ -101,29 +104,18 @@ class EmployeeCallController extends Controller
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
 
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
-
-        $call = $client->call('data', 'get.employees');
-
-        $employees = $call['result']['data'];
-        $id = 0;
-        foreach ($employees as $employee) {
-            if (!empty($employee['extension']) && $employee['extension']['extension_phone_number'] == $extension) {
-                $id = $employee['id'];
-                break;
-            }
-        }
-
         $callParams = [
             'first_call' => 'employee',
-            'virtual_phone_number' => ($virtualNumber ?? '74954893455'),
+            'virtual_phone_number' => ($sip->virtual_number ?? '74954893455'),
             'contact' => $contactPhoneNumber,
             'employee' => [
-                'id' => $id
+                'id' => $sip->employee_id
             ]
         ];
 
         $result = $client->call('call', 'start.employee_call', $callParams);
-        Log::channel('comagic')->info($call);
+        Log::channel('comagic')->info($callParams);
+        Log::channel('comagic')->info($result);
 
         return $result;
     }

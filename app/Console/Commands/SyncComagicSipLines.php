@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Courier;
 use App\Models\SipLine;
 use Exception;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -17,28 +16,6 @@ class SyncComagicSipLines extends Command
 
     public function handle()
     {
-
-
-        $response = $this->getData('get.employees');
-
-        if ($response->successful()) {
-            $result = $response->json()['result']['data'];
-
-            $map = [];
-            foreach ($result as $employee) {
-                if (!isset($employee['extension']) || !isset($employee['extension']['extension_phone_number'])) {
-                    continue;
-                }
-
-
-                $map[$employee['id']] = $employee['extension']['extension_phone_number'];
-            }
-
-            $this->info('Data loaded successfully.');
-        } else {
-            throw new Exception("API Error");
-        }
-
         $response = $this->getData('get.sip_lines');
 
         if ($response->successful()) {
@@ -52,21 +29,11 @@ class SyncComagicSipLines extends Command
                         'phone_number' => $sipLine['phone_number'],
                         'virtual_number' => $sipLine['virtual_phone_number']
                     ]);
-
-
-                $ext = $map[$sipLine['employee_id']] ?? null;
-                if (!$ext) continue;
-
-                $courier = Courier::where('internal_phone', $ext)->first();
-                if ($courier) {
-                    $courier->sipLine()->associate($line);
-                    $courier->save();
-                }
             }
 
             $this->info('Data populated successfully.');
         } else {
-            $this->error('Failed to fetch data from the API.');
+            throw new Exception('Failed to fetch data from the API.');
         }
     }
 

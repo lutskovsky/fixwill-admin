@@ -29,6 +29,10 @@ Route::group([
         'uses' => '\App\Http\Controllers\Admin\OrderTypeCrudController@sync',
         'as' => 'sync.types',
     ])->middleware('web');
+    Route::post('sip/sync', [
+        'uses' => '\App\Http\Controllers\Admin\CourierCrudController@syncSip',
+        'as' => 'sync.sip',
+    ])->middleware('web');
     Route::crud('status', 'StatusCrudController');
     Route::crud('order-type', 'OrderTypeCrudController');
 }); // this should be the absolute last line of this file
