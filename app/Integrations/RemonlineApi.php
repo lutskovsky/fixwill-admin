@@ -148,7 +148,7 @@ class RemonlineApi
 
     public function getOrderById($orderId)
     {
-        return $this->apiCall('order/' . $orderId);
+        return $this->apiCall('order/' . $orderId)['data'];
     }
 
     public function getClients($data = [])
@@ -194,6 +194,11 @@ class RemonlineApi
     public function getEmployees()
     {
         return $this->apiCall('employees/');
+    }
+
+    public static function convertDate($time)
+    {
+        return date('d.m.Y', $time / 1000);
     }
 }
 

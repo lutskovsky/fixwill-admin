@@ -9,6 +9,7 @@ use App\Http\Controllers\StatusChangeController;
 use App\Http\Controllers\TelegramBots\CallNotificationsBotController;
 use App\Http\Controllers\TelegramBots\LogisticsBotController;
 use App\Http\Controllers\TelegramController;
+use App\Listeners\TransferIssueNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,18 +18,21 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('webhook')->group(function () {
-    Route::post('telegram', [TelegramController::class, 'handle']);
+//    Route::post('telegram', [TelegramController::class, 'handle']);
     Route::prefix('call')->group(function () {
         Route::get('notify', [ComagicWebhookController::class, 'notify']);
         Route::get('create-order', [ComagicWebhookController::class, 'create']);
+        Route::get('outgoing', [ComagicWebhookController::class, 'outgoingCall']);
     });
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
     Route::get('courier_error', [ComagicWebhookController::class, 'reportCourierCallError']);
 
     Route::post('status-change', [StatusChangeController::class, 'store']);
-
-    Route::post('/telegram/call_notifications', [CallNotificationsBotController::class, 'handle']);
-    Route::post('/telegram/logistics', [LogisticsBotController::class, 'handle']);
+    Route::prefix('telegram')->group(function () {
+        Route::post('call_notifications', [CallNotificationsBotController::class, 'handle']);
+        Route::post('logistics', [LogisticsBotController::class, 'handle']);
+        Route::post('status', [TransferIssueNotification::class, 'getMessage']);
+    });
 });
 
 Route::get('/employee/{remonline_login}/virtual-numbers', [EmployeeController::class, 'getVirtualNumbers']);

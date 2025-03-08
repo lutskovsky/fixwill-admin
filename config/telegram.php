@@ -31,13 +31,8 @@ return [
     |             ]
     */
     'bots' => [
-        'mybot' => [
-            'token' => env('TELEGRAM_BOT_TOKEN', 'YOUR-BOT-TOKEN'),
-            'certificate_path' => env('TELEGRAM_CERTIFICATE_PATH', 'YOUR-CERTIFICATE-PATH'),
-            'webhook_url' => env('TELEGRAM_WEBHOOK_URL', 'YOUR-BOT-WEBHOOK-URL'),
-            /*
-             * @see https://core.telegram.org/bots/api#update
-             */
+        'status' => [
+            'token' => env('TELEGRAM_BOT_TOKEN_STATUS'),
             'allowed_updates' => null,
             'commands' => [
                 // Acme\Project\Commands\MyTelegramBot\BotCommand::class
@@ -48,6 +43,13 @@ return [
         //            'token' => '123456:abc',
         //        ],
     ],
+
+    'chats' => [
+        'reschedule' => '-4756150150',
+        'refusal' => '-4726607506',
+        'transfer_supervisors' => '-4633594678',
+    ],
+
 
     /*
     |--------------------------------------------------------------------------

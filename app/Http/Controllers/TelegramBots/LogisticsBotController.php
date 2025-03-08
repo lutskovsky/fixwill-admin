@@ -42,7 +42,6 @@ class LogisticsBotController extends Controller
     {
         $data = $request->all();
 
-
         if (isset($data['callback_query'])) {
             $this->handleCallback($data);
             return response('OK', 200);
@@ -82,7 +81,6 @@ class LogisticsBotController extends Controller
         if ($message && preg_match('/^(.+)@fixwill.*$/', $message, $matches)) {
             $message = $matches[1];
         }
-
 
         if ($message && preg_match('/\/info:(\d+):(.+)\n([\S\s]*)/', $message, $matches)) {
 
@@ -150,7 +148,7 @@ class LogisticsBotController extends Controller
             foreach ($trips as $trip) {
                 try {
                     $remonline = new RemonlineApi();
-                    $order = $remonline->getOrderById($trip->order_id)['data'];
+                    $order = $remonline->getOrderById($trip->order_id);
                 } catch (Exception $e) {
                     $this->sendMsg($e->getMessage());
                     return;
@@ -210,7 +208,6 @@ class LogisticsBotController extends Controller
         try {
             $remonline = new RemonlineApi();
             $order = $remonline->getOrderById($orderId);
-            $order = $order['data'];
         } catch (Exception $e) {
             $this->sendMsg($e->getMessage());
             return;

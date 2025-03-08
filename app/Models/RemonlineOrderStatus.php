@@ -7,6 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Sushi\Sushi;
 
+/**
+ *
+ *
+ * @property int $id
+ * @property string|null $name
+ * @property string|null $color
+ * @property int|null $group
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|RemonlineOrderStatus newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|RemonlineOrderStatus newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|RemonlineOrderStatus query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|RemonlineOrderStatus whereColor($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|RemonlineOrderStatus whereGroup($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|RemonlineOrderStatus whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|RemonlineOrderStatus whereName($value)
+ * @mixin \Eloquent
+ */
 class RemonlineOrderStatus extends Model
 {
     use Sushi;

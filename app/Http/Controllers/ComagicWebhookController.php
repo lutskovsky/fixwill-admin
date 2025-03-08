@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Integrations\RemonlineApi;
 use App\Models\Scenario;
 use App\Models\Status;
+use App\Models\TransferIssue;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
@@ -21,6 +22,8 @@ class ComagicWebhookController extends Controller
             return $this->notify($request);
         } elseif ($request->action == 'create') {
             return $this->create($request);
+        } elseif ($request->action == 'outgoing') {
+            return $this->outgoingCall($request);
         }
 
         return response('Wrong action', 400);
@@ -200,5 +203,16 @@ class ComagicWebhookController extends Controller
             $botService = new TelegramBotService(config('telegramBots.notifications'));
             $botService->sendMessage("-4687255586", $request->query("text"));
         }
+    }
+
+    public function outgoingCall(Request $request)
+    {
+        $issue = TransferIssue::whereJsonContains('phones', $request->query('number'))->first();
+
+        if ($issue) {
+            $issue->called = true;
+            $issue->save();
+        }
+        return response('OK', 200);
     }
 }

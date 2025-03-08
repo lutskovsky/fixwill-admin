@@ -3,19 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
+use App\Models\Order;
 use App\Models\OrderType;
 use App\Models\Status;
 use App\Models\StatusChange;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
+use App\Events\StatusChanged;
 
 class StatusChangeController extends Controller
 {
     public function store(Request $request)
     {
-//        if ($request->context->object_type != 'order') {
-//            return response('Not an order', 200);
-//        }
         $validated = $request->validate([
             'context.object_id' => 'required|integer',
             'metadata.new.id' => 'required|integer',
@@ -24,30 +23,44 @@ class StatusChangeController extends Controller
 
         $orderId = $validated['context']['object_id'];
         $newStatusId = $validated['metadata']['new']['id'];
-        StatusChange::create([
+        $statusChange = StatusChange::create([
             'new_status_id' => $newStatusId,
             'old_status_id' => $validated['metadata']['old']['id'],
             'order_id' => $orderId,
         ]);
+
+        $rem = new RemonlineApi();
+        $newData = $rem->getOrderById($orderId);
+
+
+        $savedOrder = Order::whereId($orderId)->first();
+
+        if ($savedOrder) {
+            $oldData = $savedOrder->data;
+            $savedOrder->update(['data' => $newData]);
+        } else {
+            $oldData = $newData;
+            Order::create(['id' => $orderId, 'label' => $newData['id_label'], 'data' => $newData]);
+        }
+
+        StatusChanged::dispatch($statusChange, $oldData, $newData);
 
         $statusCheck = Status::where(['status_id' => $newStatusId, 'operator_required' => true])->first();
         if (!$statusCheck) {
             return response('OK', 200);
         }
 
-        $rem = new RemonlineApi();
-        $order = $rem->getOrderById($orderId)['data'];
-        $orderType = $order['order_type']['id'];
+        $orderType = $newData['order_type']['id'];
 
         $typeCheck = OrderType::where(['type_id' => $orderType, 'operator_required' => true])->first();
         if (!$typeCheck) {
             return response('OK', 200);
         }
 
-        if (!isset($order["custom_fields"]["f2129012"]) || !$order["custom_fields"]["f2129012"]) {
+        if (!isset($newData["custom_fields"]["f2129012"]) || !$newData["custom_fields"]["f2129012"]) {
             $token = config('telegramBots.notifications');
             $botService = new TelegramBotService($token);
-            $msg = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> без оператора.";
+            $msg = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$newData['id_label']}</a> без оператора.";
             $botService->sendMessage('-1002373384758', $msg);
         }
         return response('OK', 200);
