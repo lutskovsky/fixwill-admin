@@ -59,7 +59,7 @@ class EscalateTransferIssues extends Command
             $type = match ($issue->type) {
                 'reschedule' => "Перенос",
                 'refusal' => "Отказ",
-                default => "??? Непонятно, отказ или перенос, обратитесь к программисту",
+                default => "??? Непонятно, отказ или перенос, перешлите программисту",
             };
 
             $callText = $issue->called ? "Звонок был" : "Звонка не было";
