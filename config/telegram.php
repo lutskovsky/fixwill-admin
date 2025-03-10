@@ -45,9 +45,9 @@ return [
     ],
 
     'chats' => [
-        'reschedule' => '-4756150150',
-        'refusal' => '-4726607506',
-        'transfer_supervisors' => '-4633594678',
+        'reschedule' => '-1002262693482',
+        'refusal' => '-1002453942748',
+        'transfer_supervisors' => '-1002185400566',
     ],
 
 
