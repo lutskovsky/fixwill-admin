@@ -60,7 +60,6 @@ class RemonlineApi
     {
         $data['token'] = $this->token;
         $url = urldecode($this->api_url . $method . '?' . $this->generateCorrectParams($data));
-        //var_dump($url);
         try {
             $response = $this->client->request($httpMethod, $url);
 

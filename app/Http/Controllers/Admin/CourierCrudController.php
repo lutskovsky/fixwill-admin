@@ -77,6 +77,7 @@ class CourierCrudController extends CrudController
                 'model' => "App\Models\SipLine", // related model
                 'entity' => 'sipLine',
                 'attribute' => 'description',
+                'searchLogic' => false,
                 'priority' => 10,
             ],
             [
