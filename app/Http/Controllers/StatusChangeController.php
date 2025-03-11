@@ -32,6 +32,9 @@ class StatusChangeController extends Controller
         $rem = new RemonlineApi();
         $newData = $rem->getOrderById($orderId);
         $currentPickupDate = $newData['custom_fields']['f1482265'] ?? null;
+        if ($currentPickupDate === '') {
+            $currentPickupDate = null;
+        }
 
         $savedOrder = Order::whereId($orderId)->first();
 
