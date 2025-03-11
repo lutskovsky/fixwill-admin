@@ -59,7 +59,7 @@ class TransferIssueNotification
         $order = $event->newData;
 
 
-        $initialDate = Order::whereId($orderId)->value('initial_pickup_date');
+        $initialDate = Order::find($orderId)->value('initial_pickup_date');
         $initialDate = $initialDate ? RemonlineApi::convertDate($initialDate) : 'не задано';
 
         $oldDate = $event->oldData['custom_fields']['f1482265'] ?? 0;
@@ -104,23 +104,25 @@ class TransferIssueNotification
             "Сайт: $site";
 
         $text = "🔴 Не обработан\n" . $description;
-        $messageData = $this->bot->sendMessage(
-            [
-                'chat_id' => $chat,
-                'text' => $text,
-                'parse_mode' => 'html',
-                'reply_markup' => $this->getReplyMarkup($orderId),
-            ]);
 
-        TransferIssue::create(
+        $issue = TransferIssue::create(
             [
                 'order_id' => $orderId,
                 'type' => $issueType,
                 'phones' => $order['client']['phone'] ?? [],
                 'description' => $description,
-                'message_id' => $messageData['message_id'],
             ]
         );
+
+        $messageData = $this->bot->sendMessage(
+            [
+                'chat_id' => $chat,
+                'text' => $text,
+                'parse_mode' => 'html',
+                'reply_markup' => $this->getReplyMarkup($issue->id),
+            ]);
+        $issue->update(['message_id' => $messageData['message_id']]);
+
     }
 
     public function updateMessage(TransferIssue $issue, $escalation = false): void
@@ -237,12 +239,12 @@ class TransferIssueNotification
             $matches = [];
             if (preg_match('/@fixwill.+bot\s+(\w+):(\d+)/', $firstLine, $matches)) {
                 $action = $matches[1] ?? null;
-                $orderId = $matches[2] ?? null;
+                $issueId = $matches[2] ?? null;
                 if (!$action || !is_numeric($orderId)) {
                     return;
                 }
 
-                $issue = TransferIssue::where('order_id', $orderId)->first();
+                $issue = TransferIssue::find($issueId);
                 if (!$issue) {
                     return;
                 }
@@ -265,23 +267,23 @@ class TransferIssueNotification
     }
 
     /**
-     * @param $orderId
+     * @param $issueId
      * @return array[]
      */
-    protected function getReplyMarkup($orderId): false|string
+    protected function getReplyMarkup($issueId): false|string
     {
         $buttons = [
             [[
                 'text' => "❓ Указать причину",
-                'switch_inline_query_current_chat' => "reason:$orderId\n\n",
+                'switch_inline_query_current_chat' => "reason:$issueId\n\n",
             ]],
             [[
                 'text' => "✔️ Обработан",
-                'switch_inline_query_current_chat' => "process:$orderId\n\n",
+                'switch_inline_query_current_chat' => "process:$issueId\n\n",
             ]],
             [[
                 'text' => "🌙 До конца дня",
-                'callback_data' => "postpone:$orderId",
+                'callback_data' => "postpone:$issueId",
             ]],
         ];
         $replyMarkup = ['inline_keyboard' => $buttons];
