@@ -240,7 +240,7 @@ class TransferIssueNotification
             if (preg_match('/@fixwill.+bot\s+(\w+):(\d+)/', $firstLine, $matches)) {
                 $action = $matches[1] ?? null;
                 $issueId = $matches[2] ?? null;
-                if (!$action || !is_numeric($orderId)) {
+                if (!$action || !is_numeric($issueId)) {
                     return;
                 }
 
