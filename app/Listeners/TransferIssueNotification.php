@@ -17,10 +17,10 @@ class TransferIssueNotification
 {
     private Api $bot;
     private array $prefixes = [
-        '🔴 Не обработано',
+        '🔴 Не обработан',
         '🟡 Был звонок',
-        '🔵 Обработано без звонка',
-        '🟢 Обработано',
+        '🔵 Обработан без звонка',
+        '🟢 Обработан',
     ];
 
     /**
@@ -132,12 +132,12 @@ class TransferIssueNotification
             return;
         }
 
-        if ($escalation) {
-            $text = $issue->called ? "⬆️ Сообщено руководству (не было звонка)\n" : "💀 Сообщено руководству (не обработано)\n";
+        if ($escalation && !$issue->processed) {
+            $text = "🔥 Просрочен\n";
         } else {
             $code = (int)$issue->called + 2 * (int)$issue->processed;
             $text = $this->prefixes[$code] . "\n";
-            if ($issue->postponed) {
+            if ($issue->postponed && !$issue->processed) {
                 $text .= "🌙 Отложено до конца дня\n";
             }
         }
@@ -201,6 +201,15 @@ class TransferIssueNotification
             [$action, $issueId] = explode(':', $data);
 
             if ($action == 'postpone') {
+                $issue = TransferIssue::find($issueId);
+                if (!$issue) {
+                    $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Ошибка: заказ не найден"]);
+                    return;
+                }
+
+                $issue->postponed = true;
+                $issue->save();
+
                 try {
                     $this->bot->answerCallbackQuery([
                         'callback_query_id' => $callbackQueryId,
@@ -210,13 +219,6 @@ class TransferIssueNotification
                     $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Проверка отложена до 21:00"]);
                 }
 
-                $issue = TransferIssue::find($issueId);
-                if (!$issue) {
-                    $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Ошибка: заказ не найден"]);
-                }
-
-                $issue->postponed = true;
-                $issue->save();
             } else {
                 return;
             }

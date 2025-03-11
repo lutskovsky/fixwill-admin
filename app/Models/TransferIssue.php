@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  *
@@ -18,24 +21,25 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $escalated
  * @property string $reason
  * @property string $result
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereCalled($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereDate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereEscalated($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereOrderId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue wherePhones($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue wherePostponed($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereProcessed($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereReason($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereResult($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|TransferIssue whereUpdatedAt($value)
- * @mixin \Eloquent
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property mixed $message_id
+ * @method static Builder<static>|TransferIssue newModelQuery()
+ * @method static Builder<static>|TransferIssue newQuery()
+ * @method static Builder<static>|TransferIssue query()
+ * @method static Builder<static>|TransferIssue whereCalled($value)
+ * @method static Builder<static>|TransferIssue whereCreatedAt($value)
+ * @method static Builder<static>|TransferIssue whereDate($value)
+ * @method static Builder<static>|TransferIssue whereEscalated($value)
+ * @method static Builder<static>|TransferIssue whereId($value)
+ * @method static Builder<static>|TransferIssue whereOrderId($value)
+ * @method static Builder<static>|TransferIssue wherePhones($value)
+ * @method static Builder<static>|TransferIssue wherePostponed($value)
+ * @method static Builder<static>|TransferIssue whereProcessed($value)
+ * @method static Builder<static>|TransferIssue whereReason($value)
+ * @method static Builder<static>|TransferIssue whereResult($value)
+ * @method static Builder<static>|TransferIssue whereUpdatedAt($value)
+ * @mixin Eloquent
  */
 class TransferIssue extends Model
 {

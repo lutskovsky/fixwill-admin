@@ -64,17 +64,22 @@ class EscalateTransferIssues extends Command
             $callText = $issue->called ? "Звонок был" : "Звонка не было";
             $processedText = $issue->processed ? "обработан" : "не обработан";
 
-            $msg = "<b>$type\n$callText, $processedText</b>\n";
 
-            if ($issue->processed) {
-                $msg .= $issue->result . "\n\n";
+            $text = "<b>$type\n$callText, $processedText</b>\n\n";
+
+            if ($issue->reason) {
+                $text .= "<b>Причина</b>\n" . $issue->reason . "\n\n";
             }
 
-            $msg .= $issue->description;
+            if ($issue->result) {
+                $text .= "<b>Результат</b>\n" . $issue->result . "\n\n";
+            }
+
+            $text .= $issue->description;
 
             $bot->sendMessage([
                 'chat_id' => config('telegram.chats.transfer_supervisors'),
-                'text' => $msg,
+                'text' => $text,
                 'parse_mode' => 'html']);
 
             $notifier = new TransferIssueNotification();
