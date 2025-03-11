@@ -81,6 +81,7 @@ class TransferIssueNotification
             "Бренд: {$brand}\n" .
             "Тип курьера: {$courierType}\n" .
             "Курьер: {$courier}\n" .
+            "Создан " . RemonlineApi::convertDate($order['created_at']) . "\n" .
             "Дата привоза: $dateText\n" .
             "Город: {$city}\n";
 
@@ -100,7 +101,15 @@ class TransferIssueNotification
         ];
         $replyMarkup = ['inline_keyboard' => $buttons];
 
-        $this->bot->sendMessage(['chat_id' => $chat, 'text' => $description, 'parse_mode' => 'html', 'reply_markup' => json_encode($replyMarkup)]);
+//        $text = "🔴 Не обработан\n" . $description;
+        $text = $description;
+        $messageData = $this->bot->sendMessage(
+            [
+                'chat_id' => $chat,
+                'text' => $text,
+                'parse_mode' => 'html',
+                'reply_markup' => json_encode($replyMarkup),
+            ]);
 
         TransferIssue::create(
             [
@@ -108,8 +117,40 @@ class TransferIssueNotification
                 'type' => $issueType,
                 'phones' => $order['client']['phone'] ?? [],
                 'description' => $description,
+                'message_id' => $messageData['message_id'],
             ]
         );
+    }
+
+    public function updateMessage(TransferIssue $issue)
+    {
+        $messageId = $issue->message_id;
+        if (!$messageId) {
+            return;
+        }
+
+        $text = "";
+        if ($issue->reason) {
+            $text .= "Причина:\n" . $issue->reason . "\n\n";
+        }
+
+        if ($issue->result) {
+            $text .= "Результат:\n" . $issue->result . "\n\n";
+        }
+
+        $text .= $issue->description;
+
+        if ($issue->type == 'reschedule') {
+            $chat = config('telegram.chats.reschedule');
+        } elseif ($issue->type == 'refusal') {
+            $chat = config('telegram.chats.refusal');
+        } else {
+            return;
+        }
+
+
+        $this->bot->editMessageText(['message_id' => $messageId, 'chat_id' => $chat, 'text' => $text]);
+
     }
 
     public function getMessage(Request $request)
@@ -151,50 +192,52 @@ class TransferIssueNotification
 
                 $issue->postponed = true;
                 $issue->save();
-            }
-            return;
-        }
-
-
-        $message = $data['message'] ?? null;
-
-
-        $text = $message['text'] ?? '';
-        $chatId = $message['chat']['id'] ?? null;
-        $firstName = $message['from']['first_name'] ?? '';
-        $lastName = $message['from']['last_name'] ?? '';
-        $username = $message['from']['username'] ?? '';
-        $submitter = "$firstName $lastName @$username";
-
-        $lines = explode("\n", $text, 2);
-        $firstLine = $lines[0];
-        $reply = isset($lines[1]) ? trim($lines[1]) : '';
-
-
-        $matches = [];
-        if (preg_match('/@fixwill_status_bot\s+(\w+):(\d+)/', $firstLine, $matches)) {
-            $action = $matches[1] ?? null;
-            $orderId = $matches[2] ?? null;
-            if (!$action || !is_numeric($orderId)) {
+            } else {
                 return;
             }
+        } else {
+            $message = $data['message'] ?? null;
 
-            $issue = TransferIssue::where('order_id', $orderId)->first();
-            if (!$issue) {
+
+            $text = $message['text'] ?? '';
+            $chatId = $message['chat']['id'] ?? null;
+            $firstName = $message['from']['first_name'] ?? '';
+            $lastName = $message['from']['last_name'] ?? '';
+            $username = $message['from']['username'] ?? '';
+            $submitter = "$firstName $lastName @$username";
+
+            $lines = explode("\n", $text, 2);
+            $firstLine = $lines[0];
+            $reply = isset($lines[1]) ? trim($lines[1]) : '';
+
+
+            $matches = [];
+            if (preg_match('/@fixwill_status_bot\s+(\w+):(\d+)/', $firstLine, $matches)) {
+                $action = $matches[1] ?? null;
+                $orderId = $matches[2] ?? null;
+                if (!$action || !is_numeric($orderId)) {
+                    return;
+                }
+
+                $issue = TransferIssue::where('order_id', $orderId)->first();
+                if (!$issue) {
+                    return;
+                }
+
+                if ($action == 'reason') {
+                    $issue->reason = $reply;
+                }
+                if ($action == 'process') {
+                    $issue->result = "$submitter\n$reply";
+                    $issue->processed = true;
+                }
+
+                $issue->save();
+            } else {
                 return;
             }
-
-            if ($action == 'reason') {
-                $issue->reason = $reply;
-            }
-            if ($action == 'process') {
-                $issue->result = "$submitter\n$reply";
-                $issue->processed = true;
-            }
-
-            $issue->save();
         }
+
+        $this->updateMessage($issue);
     }
 }
-
-;

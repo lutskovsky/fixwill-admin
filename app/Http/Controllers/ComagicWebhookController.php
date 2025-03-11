@@ -151,7 +151,7 @@ class ComagicWebhookController extends Controller
             }
 
             // Заказ не считается, если другой сценарий
-            $scenarioInOrder = $order['custom_fields'][self::SITE_ORDER_FIELD];
+            $scenarioInOrder = $order['custom_fields'][self::SITE_ORDER_FIELD] ?? '';
             $scenarioInOrder = trim($scenarioInOrder, " +");
             if ($scenarioInOrder != $scenario) {
                 continue;
