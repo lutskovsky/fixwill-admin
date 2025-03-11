@@ -170,7 +170,7 @@ class TransferIssueNotification
                 'chat_id' => $chat,
                 'text' => $text,
                 'parse_mode' => 'HTML',
-                'reply_markup' => $escalation ? null : $this->getReplyMarkup($issue->order_id),
+                'reply_markup' => $escalation ? null : $this->getReplyMarkup($issue->id),
             ]);
         } catch (TelegramSDKException $e) {
             return;
@@ -198,7 +198,7 @@ class TransferIssueNotification
             if (!$data) {
                 return;
             }
-            [$action, $orderId] = explode(':', $data);
+            [$action, $issueId] = explode(':', $data);
 
             if ($action == 'postpone') {
                 try {
@@ -210,9 +210,9 @@ class TransferIssueNotification
                     $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Проверка отложена до 21:00"]);
                 }
 
-                $issue = TransferIssue::where('order_id', $orderId)->first();
+                $issue = TransferIssue::find($issueId);
                 if (!$issue) {
-                    return;
+                    $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Ошибка: заказ не найден"]);
                 }
 
                 $issue->postponed = true;
