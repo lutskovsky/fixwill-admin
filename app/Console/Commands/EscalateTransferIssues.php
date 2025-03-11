@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Listeners\TransferIssueNotification;
 use App\Models\TransferIssue;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,17 +32,6 @@ class EscalateTransferIssues extends Command
 
         $bot = Telegram::bot('status');
 
-        $now = now('Europe/Moscow');
-        $hour = $now->hour;
-
-        // scheduled to run only during working hours
-        if ($hour < 11) { // pick up yesterday evening issues
-            $gracePeriodHours = 14;
-        } else {
-            $gracePeriodHours = 2;
-        }
-
-
         $issues = TransferIssue::where(function (Builder $query) {
             $query->where('called', false)
                 ->orWhere('processed', false);
@@ -50,6 +40,15 @@ class EscalateTransferIssues extends Command
         if ($this->option('postponed')) {
             $issues->where('postponed', true);
         } else {
+            $now = now('Europe/Moscow');
+            $hour = $now->hour;
+
+            // scheduled to run only during working hours
+            if ($hour < 11) { // pick up yesterday evening issues
+                $gracePeriodHours = 14;
+            } else {
+                $gracePeriodHours = 2;
+            }
             $issues->where('created_at', '<', $now->subHours($gracePeriodHours));
         }
 
@@ -77,6 +76,9 @@ class EscalateTransferIssues extends Command
                 'chat_id' => config('telegram.chats.transfer_supervisors'),
                 'text' => $msg,
                 'parse_mode' => 'html']);
+
+            $notifier = new TransferIssueNotification();
+            $notifier->updateMessage($issue, escalation: true);
 
             $issue->delete();
         }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
+use App\Listeners\TransferIssueNotification;
 use App\Models\Scenario;
 use App\Models\Status;
 use App\Models\TransferIssue;
@@ -212,6 +213,8 @@ class ComagicWebhookController extends Controller
         if ($issue) {
             $issue->called = true;
             $issue->save();
+            $notifier = new TransferIssueNotification();
+            $notifier->updateMessage($issue);
         }
         return response('OK', 200);
     }

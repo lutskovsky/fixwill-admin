@@ -4,12 +4,10 @@ namespace App\Listeners;
 
 use App\Events\StatusChanged;
 use App\Integrations\RemonlineApi;
+use App\Models\Order;
 use App\Models\Status;
 use App\Models\TransferIssue;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\Request;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -18,7 +16,12 @@ use Telegram\Bot\Laravel\Facades\Telegram;
 class TransferIssueNotification
 {
     private Api $bot;
-    private RemonlineApi $remonline;
+    private array $prefixes = [
+        '🔴 Не обработано',
+        '🟡 Был звонок',
+        '🔵 Обработано без звонка',
+        '🟢 Обработано',
+    ];
 
     /**
      * Create the event listener.
@@ -26,7 +29,6 @@ class TransferIssueNotification
     public function __construct()
     {
         $this->bot = Telegram::bot('status');
-        $this->remonline = new RemonlineApi();
     }
 
     /**
@@ -56,6 +58,10 @@ class TransferIssueNotification
 
         $order = $event->newData;
 
+
+        $initialDate = Order::whereId($orderId)->value('initial_pickup_date');
+        $initialDate = $initialDate ? RemonlineApi::convertDate($initialDate) : 'не задано';
+
         $oldDate = $event->oldData['custom_fields']['f1482265'] ?? 0;
         $oldDate = $oldDate ? RemonlineApi::convertDate($oldDate) : 'не задано';
 
@@ -75,40 +81,35 @@ class TransferIssueNotification
         $courierType = $order['custom_fields']['f1620346'] ?? 'не задано';
         $courier = $order['custom_fields']['f1482267'] ?? 'не задано';
         $city = $order['custom_fields']['f5192512'] ?? 'не задано';
+        $site = $order['custom_fields']['f4196099'] ?? 'не задано';
         $description = "{$link}\n" .
             "Тип изделия: {$equipmentType}\n" .
             "Диагональ: {$diag}\n" .
             "Бренд: {$brand}\n" .
             "Тип курьера: {$courierType}\n" .
             "Курьер: {$courier}\n" .
-            "Создан " . RemonlineApi::convertDate($order['created_at']) . "\n" .
-            "Дата привоза: $dateText\n" .
-            "Город: {$city}\n";
+            "Создан " . RemonlineApi::convertDate($order['created_at']) . "\n";
 
-        $buttons = [
-            [[
-                'text' => "❓ Указать причину",
-                'switch_inline_query_current_chat' => "reason:$orderId\n\n",
-            ]],
-            [[
-                'text' => "✔️ Обработан",
-                'switch_inline_query_current_chat' => "process:$orderId\n\n",
-            ]],
-            [[
-                'text' => "🌙 До конца дня",
-                'callback_data' => "postpone:$orderId",
-            ]],
-        ];
-        $replyMarkup = ['inline_keyboard' => $buttons];
+        if ($issueType == 'reschedule') {
+            $description .=
+                "Дата привоза: $dateText\n";
+        } elseif ($issueType == 'refusal') {
+            $description .=
+                "Исходная дата привоза: $initialDate\n" .
+                "Текущая дата привоза: $newDate\n";
+        }
 
-//        $text = "🔴 Не обработан\n" . $description;
-        $text = $description;
+        $description .=
+            "Город: {$city}\n" .
+            "Сайт: $site";
+
+        $text = "🔴 Не обработан\n" . $description;
         $messageData = $this->bot->sendMessage(
             [
                 'chat_id' => $chat,
                 'text' => $text,
                 'parse_mode' => 'html',
-                'reply_markup' => json_encode($replyMarkup),
+                'reply_markup' => $this->getReplyMarkup($orderId),
             ]);
 
         TransferIssue::create(
@@ -122,20 +123,32 @@ class TransferIssueNotification
         );
     }
 
-    public function updateMessage(TransferIssue $issue)
+    public function updateMessage(TransferIssue $issue, $escalation = false): void
     {
         $messageId = $issue->message_id;
         if (!$messageId) {
             return;
         }
 
-        $text = "";
+        if ($escalation) {
+            $text = $issue->called ? "⬆️ Сообщено руководству (не было звонка)\n" : "💀 Сообщено руководству (не обработано)\n";
+        } else {
+            $code = (int)$issue->called + 2 * (int)$issue->processed;
+            $text = $this->prefixes[$code] . "\n";
+            if ($issue->postponed) {
+                $text .= "🌙 Отложено до конца дня\n";
+            }
+        }
+
+
+        $text .= "\n";
+
         if ($issue->reason) {
-            $text .= "Причина:\n" . $issue->reason . "\n\n";
+            $text .= "<b>Причина:</b>\n" . $issue->reason . "\n\n";
         }
 
         if ($issue->result) {
-            $text .= "Результат:\n" . $issue->result . "\n\n";
+            $text .= "<b>Результат:</b>\n" . $issue->result . "\n\n";
         }
 
         $text .= $issue->description;
@@ -149,7 +162,17 @@ class TransferIssueNotification
         }
 
 
-        $this->bot->editMessageText(['message_id' => $messageId, 'chat_id' => $chat, 'text' => $text]);
+        try {
+            $this->bot->editMessageText([
+                'message_id' => $messageId,
+                'chat_id' => $chat,
+                'text' => $text,
+                'parse_mode' => 'HTML',
+                'reply_markup' => $escalation ? null : $this->getReplyMarkup($issue->order_id),
+            ]);
+        } catch (TelegramSDKException $e) {
+            return;
+        }
 
     }
 
@@ -204,15 +227,15 @@ class TransferIssueNotification
             $firstName = $message['from']['first_name'] ?? '';
             $lastName = $message['from']['last_name'] ?? '';
             $username = $message['from']['username'] ?? '';
-            $submitter = "$firstName $lastName @$username";
+            $submitter = "Автор: $firstName $lastName @$username";
 
             $lines = explode("\n", $text, 2);
             $firstLine = $lines[0];
             $reply = isset($lines[1]) ? trim($lines[1]) : '';
-
+            $reply = "$submitter\n$reply";
 
             $matches = [];
-            if (preg_match('/@fixwill_status_bot\s+(\w+):(\d+)/', $firstLine, $matches)) {
+            if (preg_match('/@fixwill.+bot\s+(\w+):(\d+)/', $firstLine, $matches)) {
                 $action = $matches[1] ?? null;
                 $orderId = $matches[2] ?? null;
                 if (!$action || !is_numeric($orderId)) {
@@ -228,7 +251,7 @@ class TransferIssueNotification
                     $issue->reason = $reply;
                 }
                 if ($action == 'process') {
-                    $issue->result = "$submitter\n$reply";
+                    $issue->result = $reply;
                     $issue->processed = true;
                 }
 
@@ -239,5 +262,29 @@ class TransferIssueNotification
         }
 
         $this->updateMessage($issue);
+    }
+
+    /**
+     * @param $orderId
+     * @return array[]
+     */
+    protected function getReplyMarkup($orderId): false|string
+    {
+        $buttons = [
+            [[
+                'text' => "❓ Указать причину",
+                'switch_inline_query_current_chat' => "reason:$orderId\n\n",
+            ]],
+            [[
+                'text' => "✔️ Обработан",
+                'switch_inline_query_current_chat' => "process:$orderId\n\n",
+            ]],
+            [[
+                'text' => "🌙 До конца дня",
+                'callback_data' => "postpone:$orderId",
+            ]],
+        ];
+        $replyMarkup = ['inline_keyboard' => $buttons];
+        return json_encode($replyMarkup);
     }
 }
