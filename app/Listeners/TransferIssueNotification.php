@@ -146,11 +146,11 @@ class TransferIssueNotification
         $text .= "\n";
 
         if ($issue->reason) {
-            $text .= "<b>Причина:</b>\n" . $issue->reason . "\n\n";
+            $text .= "<b>Причина</b>\n" . $issue->reason . "\n\n";
         }
 
         if ($issue->result) {
-            $text .= "<b>Результат:</b>\n" . $issue->result . "\n\n";
+            $text .= "<b>Результат</b>\n" . $issue->result . "\n\n";
         }
 
         $text .= $issue->description;
