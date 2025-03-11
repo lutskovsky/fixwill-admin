@@ -4,8 +4,6 @@ namespace App\Integrations;
 
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException;
 
 class RemonlineApi
 {
@@ -60,24 +58,18 @@ class RemonlineApi
     {
         $data['token'] = $this->token;
         $url = urldecode($this->api_url . $method . '?' . $this->generateCorrectParams($data));
-        try {
-            $response = $this->client->request($httpMethod, $url);
+        $response = $this->client->request($httpMethod, $url);
 
-            $body = json_decode($response->getBody(), true);
-            if ($body['success']) {
-                return $body;
-            } else {
+        $body = json_decode($response->getBody(), true);
+        if ($body['success']) {
+            return $body;
+        } else {
+            if ($try > 3) {
                 throw new Exception(json_encode($body['message']) . " while calling $url");
             }
-        } catch (RequestException|ClientException $e) {
-            if ($try > 5) {
-                throw $e;
-            }
-
             sleep(1);
             $data['token'] = $this->getNewToken();
             return $this->apiCall($method, $data, $httpMethod, $try + 1);
-
         }
     }
 
