@@ -208,13 +208,15 @@ class ComagicWebhookController extends Controller
 
     public function outgoingCall(Request $request)
     {
-        $issue = TransferIssue::whereJsonContains('phones', $request->query('number'))->first();
+        $issues = TransferIssue::whereJsonContains('phones', $request->query('number'))->get();
 
-        if ($issue) {
-            $issue->called = true;
-            $issue->save();
+        if ($issues) {
             $notifier = new TransferIssueNotification();
-            $notifier->updateMessage($issue);
+            foreach ($issues as $issue) {
+                $issue->called = true;
+                $issue->save();
+                $notifier->updateMessage($issue);
+            }
         }
         return response('OK', 200);
     }
