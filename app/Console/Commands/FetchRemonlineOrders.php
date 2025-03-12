@@ -7,6 +7,7 @@ use App\Integrations\RemonlineApi;
 use App\Models\Courier;
 use App\Models\CourierTrip;
 use App\Services\Telegram\TelegramBotService;
+use Exception;
 use Illuminate\Console\Command;
 
 class FetchRemonlineOrders extends Command
@@ -41,10 +42,12 @@ class FetchRemonlineOrders extends Command
         $orders = [];
         $page = 0;
         while (true) {
-            $response = $remonline->getOrders(['statuses' => [327089, 435390, 435391, 1467781,], 'page' => ++$page]);
-            if (!$response['success']) break;
-
-            $orders = array_merge($orders, $response['data']);
+            try {
+                $response = $remonline->getOrders(['statuses' => [327089, 435390, 435391, 1467781,], 'page' => ++$page]);
+                $orders = array_merge($orders, $response['data']);
+            } catch (Exception $e) {
+                break;
+            }
         }
 
         $remonlineOrderIds = array_column($orders, 'id');
