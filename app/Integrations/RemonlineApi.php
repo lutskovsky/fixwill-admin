@@ -63,7 +63,12 @@ class RemonlineApi
         try {
             $response = $this->client->request($httpMethod, $url);
 
-            return json_decode($response->getBody(), true);
+            $body = json_decode($response->getBody(), true);
+            if ($body['success']) {
+                return $body;
+            } else {
+                throw new Exception(json_encode($body['message']) . " while calling $url");
+            }
         } catch (RequestException|ClientException $e) {
             if ($try > 5) {
                 throw $e;
@@ -147,7 +152,8 @@ class RemonlineApi
 
     public function getOrderById($orderId)
     {
-        return $this->apiCall('order/' . $orderId)['data'];
+        $apiCall = $this->apiCall('order/' . $orderId);
+        return $apiCall['data'];
     }
 
     public function getClients($data = [])
