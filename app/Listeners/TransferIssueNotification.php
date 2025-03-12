@@ -125,14 +125,14 @@ class TransferIssueNotification
 
     }
 
-    public function updateMessage(TransferIssue $issue, $escalation = false): void
+    public function updateMessage(TransferIssue $issue): void
     {
         $messageId = $issue->message_id;
         if (!$messageId) {
             return;
         }
 
-        if ($escalation && !$issue->processed) {
+        if ($issue->escalated && !$issue->processed) {
             $text = "🔥 Просрочен\n";
         } else {
             $code = (int)$issue->called + 2 * (int)$issue->processed;
@@ -170,7 +170,7 @@ class TransferIssueNotification
                 'chat_id' => $chat,
                 'text' => $text,
                 'parse_mode' => 'HTML',
-                'reply_markup' => $escalation ? null : $this->getReplyMarkup($issue->id),
+                'reply_markup' => $this->getReplyMarkup($issue->id),
             ]);
         } catch (TelegramSDKException $e) {
             return;
@@ -204,6 +204,14 @@ class TransferIssueNotification
                 $issue = TransferIssue::find($issueId);
                 if (!$issue) {
                     $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Ошибка: заказ не найден"]);
+                    return;
+                }
+
+                if ($issue->processed) {
+                    $this->bot->answerCallbackQuery([
+                        'callback_query_id' => $callbackQueryId,
+                        'text' => "Уже обработан"
+                    ]);
                     return;
                 }
 

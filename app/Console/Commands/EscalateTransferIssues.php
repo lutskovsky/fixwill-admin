@@ -32,10 +32,11 @@ class EscalateTransferIssues extends Command
 
         $bot = Telegram::bot('status');
 
-        $issues = TransferIssue::where(function (Builder $query) {
-            $query->where('called', false)
-                ->orWhere('processed', false);
-        });
+        $issues = TransferIssue::where('escalated', false)
+            ->where(function (Builder $query) {
+                $query->where('called', false)
+                    ->orWhere('processed', false);
+            });
 
         if ($this->option('postponed')) {
             $issues->where('postponed', true);
@@ -83,9 +84,8 @@ class EscalateTransferIssues extends Command
                 'parse_mode' => 'html']);
 
             $notifier = new TransferIssueNotification();
-            $notifier->updateMessage($issue, escalation: true);
-
-            $issue->delete();
+            $issue->update(['escalated' => true]);
+            $notifier->updateMessage($issue);
         }
     }
 }
