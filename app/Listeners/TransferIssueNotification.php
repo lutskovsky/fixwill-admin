@@ -82,12 +82,12 @@ class TransferIssueNotification
         $courier = $order['custom_fields']['f1482267'] ?? 'не задано';
         $city = $order['custom_fields']['f5192512'] ?? 'не задано';
         $site = $order['custom_fields']['f4196099'] ?? 'не задано';
-        $description = "{$link}\n" .
-            "Тип изделия: {$equipmentType}\n" .
-            "Диагональ: {$diag}\n" .
-            "Бренд: {$brand}\n" .
-            "Тип курьера: {$courierType}\n" .
-            "Курьер: {$courier}\n" .
+        $description = "$link\n" .
+            "Тип изделия: $equipmentType\n" .
+            "Диагональ: $diag\n" .
+            "Бренд: $brand\n" .
+            "Тип курьера: $courierType\n" .
+            "Курьер: $courier\n" .
             "Создан " . RemonlineApi::convertDate($order['created_at']) . "\n";
 
         if ($issueType == 'reschedule') {
@@ -100,7 +100,7 @@ class TransferIssueNotification
         }
 
         $description .=
-            "Город: {$city}\n" .
+            "Город: $city\n" .
             "Сайт: $site";
 
         $text = "🔴 Не обработан\n" . $description;
@@ -232,8 +232,6 @@ class TransferIssueNotification
             }
         } else {
             $message = $data['message'] ?? null;
-
-
             $text = $message['text'] ?? '';
             $chatId = $message['chat']['id'] ?? null;
             $firstName = $message['from']['first_name'] ?? '';
@@ -268,6 +266,7 @@ class TransferIssueNotification
                 }
 
                 $issue->save();
+                $this->bot->deleteMessage(['chat_id' => $message['chat']['id'], 'message_id' => $message['message_id']]);
             } else {
                 return;
             }

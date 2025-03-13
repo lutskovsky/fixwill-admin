@@ -1,7 +1,7 @@
 <?php
 
-Schedule::command('remonline:fetch-orders')->everyMinute()
-    ->withoutOverlapping();
+Schedule::command('remonline:fetch-orders')->everyMinute();
+
 Schedule::command('issues:escalate')
     ->everyMinute()
     ->between('9:00', '21:00')
