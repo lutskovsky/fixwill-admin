@@ -142,7 +142,7 @@ class TransferIssueNotification
             }
         }
 
-        if ($claimed = $issue->claimed_by && !$issue->processed) {
+        if (($claimed = $issue->claimed_by) && !$issue->processed) {
             $text .= "<b>Взял в работу</b> $claimed\n";
         }
 
