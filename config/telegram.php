@@ -45,9 +45,9 @@ return [
     ],
 
     'chats' => [
-        'reschedule' => env('APP_ENV') == 'production' ? '-1002262693482' : '-4616267348',
-        'refusal' => env('APP_ENV') == 'production' ? '-1002453942748' : '-4616267348',
-        'transfer_supervisors' => env('APP_ENV') == 'production' ? '-1002185400566' : '-4616267348',
+        'reschedule' => env('APP_ENV') == 'production' ? '-1002262693482' : '-1002561928930',
+        'refusal' => env('APP_ENV') == 'production' ? '-1002453942748' : '-1002561928930',
+        'transfer_supervisors' => env('APP_ENV') == 'production' ? '-1002185400566' : '-1002561928930',
     ],
 
     /*

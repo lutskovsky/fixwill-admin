@@ -30,7 +30,7 @@ class RemonlineApi
 
     public function __construct()
     {
-        $this->api_key = env('REMONLINE_TOKEN');
+        $this->api_key = config('remonline.api_key');
         $this->client = new Client(['http_errors' => false]);
         $this->getNewToken();
     }

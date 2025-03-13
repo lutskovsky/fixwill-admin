@@ -142,6 +142,9 @@ class TransferIssueNotification
             }
         }
 
+        if ($claimed = $issue->claimed_by && !$issue->processed) {
+            $text .= "<b>Взял в работу</b> $claimed\n";
+        }
 
         $text .= "\n";
 
@@ -200,12 +203,13 @@ class TransferIssueNotification
             }
             [$action, $issueId] = explode(':', $data);
 
+            $issue = TransferIssue::find($issueId);
+            if (!$issue) {
+                $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Ошибка: заказ не найден"]);
+                return;
+            }
+
             if ($action == 'postpone') {
-                $issue = TransferIssue::find($issueId);
-                if (!$issue) {
-                    $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Ошибка: заказ не найден"]);
-                    return;
-                }
 
                 if ($issue->processed) {
                     $this->bot->answerCallbackQuery([
@@ -227,6 +231,18 @@ class TransferIssueNotification
                     $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Проверка отложена до 21:00"]);
                 }
 
+            } elseif ($action == 'claim') {
+                $issue->claimed_by = $this->getSubmitter($callbackQuery['from']);
+                $issue->save();
+
+                try {
+                    $this->bot->answerCallbackQuery([
+                        'callback_query_id' => $callbackQueryId,
+                        'text' => "Заказ закреплён за вами"
+                    ]);
+                } catch (TelegramSDKException $e) {
+                    $this->bot->sendMessage(['chat_id' => $chatId, 'text' => "Заказ закреплён за вами"]);
+                }
             } else {
                 return;
             }
@@ -234,15 +250,12 @@ class TransferIssueNotification
             $message = $data['message'] ?? null;
             $text = $message['text'] ?? '';
             $chatId = $message['chat']['id'] ?? null;
-            $firstName = $message['from']['first_name'] ?? '';
-            $lastName = $message['from']['last_name'] ?? '';
-            $username = $message['from']['username'] ?? '';
-            $submitter = "Автор: $firstName $lastName @$username";
+            $submitter = $this->getSubmitter($message['from']);
 
             $lines = explode("\n", $text, 2);
             $firstLine = $lines[0];
             $reply = isset($lines[1]) ? trim($lines[1]) : '';
-            $reply = "$submitter\n$reply";
+            $reply = "Автор: $submitter\n$reply";
 
             $matches = [];
             if (preg_match('/@fixwill.+bot\s+(\w+):(\d+)/', $firstLine, $matches)) {
@@ -287,6 +300,10 @@ class TransferIssueNotification
                 'switch_inline_query_current_chat' => "reason:$issueId\n\n",
             ]],
             [[
+                'text' => "️✋ Взять в работу",
+                'callback_data' => "claim:$issueId",
+            ]],
+            [[
                 'text' => "✔️ Обработан",
                 'switch_inline_query_current_chat' => "process:$issueId\n\n",
             ]],
@@ -297,5 +314,21 @@ class TransferIssueNotification
         ];
         $replyMarkup = ['inline_keyboard' => $buttons];
         return json_encode($replyMarkup);
+    }
+
+    /**
+     * @param $from
+     * @return string
+     */
+    protected function getSubmitter($from): string
+    {
+        $firstName = $from['first_name'] ?? '';
+        $lastName = $from['last_name'] ?? '';
+        $username = $from['username'] ?? '';
+        $submitter = "$firstName $lastName";
+        if ($username) {
+            $submitter .= " @$username";
+        }
+        return $submitter;
     }
 }
