@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Status;
 use App\Models\TransferIssue;
 use Illuminate\Http\Request;
+use Log;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -190,7 +191,7 @@ class TransferIssueNotification
 
         $data = $request->all();
 
-//        Log::info(print_r($data, true));
+        Log::channel('info')->info(print_r($data, true));
 
         if (isset($data['callback_query'])) {
             $callbackQuery = $data['callback_query'];
@@ -248,9 +249,15 @@ class TransferIssueNotification
             }
         } else {
             $message = $data['message'] ?? null;
+
+            if (!$message) {
+                return;
+            }
             $text = $message['text'] ?? '';
             $chatId = $message['chat']['id'] ?? null;
-            $submitter = $this->getSubmitter($message['from']);
+            if ($message['from']) {
+                $submitter = $this->getSubmitter($message['from']);
+            }
 
             $lines = explode("\n", $text, 2);
             $firstLine = $lines[0];
