@@ -158,6 +158,11 @@ class LogisticsBotController extends Controller
                 $messageText .= "\nЗаказ {$trip->order_label} ({$trip->direction}) - {$trip->status}\n";
                 $messageText .= "$address\n";
                 $messageText .= "Подробнее: /order_{$trip->order_id}\n";
+
+                if (mb_strlen($messageText) > 4050) {
+                    $this->botService->sendMessage($this->chatId, $messageText);
+                    $messageText = "";
+                }
             }
         } elseif ($this->chatId == self::MANAGERS_CHAT) {
             $messageText = "";
@@ -176,6 +181,13 @@ class LogisticsBotController extends Controller
                 $courierText = "- $courier:\n";
                 foreach ($trips as $trip) {
                     $courierText .= $this->getLabel($trip->order_id, $trip->order_label) . " ({$trip->direction}) - {$trip->status} /order_{$trip->order_id}\n";
+
+                    if (mb_strlen($messageText . $courierText) > 4050) {
+                        $this->botService->sendMessage($this->chatId, $messageText . $courierText);
+                        $messageText = "";
+                        $courierText = "";
+                    }
+
                 }
 
                 if (mb_strlen($messageText . $courierText) > 4096) {
@@ -193,7 +205,9 @@ class LogisticsBotController extends Controller
             $this->botService->sendMessage($this->chatId, "Нет заказов");
             return;
         }
-        $this->botService->sendMessage($this->chatId, $messageText);
+        if ($messageText) {
+            $this->botService->sendMessage($this->chatId, $messageText);
+        }
     }
 
     /**
@@ -276,6 +290,10 @@ class LogisticsBotController extends Controller
             $text .= "Неисправность: {$fault}\n";
             $comment = $order['custom_fields']['f1482266'] ?? '';
             $text .= "Примечание: {$comment}\n";
+            $comment = $order['custom_fields']['f1482266'] ?? '';
+            $text .= "Примечание: {$comment}\n";
+            $paid = $order['custom_fields']['f8547733'] ?? '';
+            $text .= "Платный привоз: {$paid}\n";
             $site = $order['custom_fields']['f4196099'] ?? '';
             $text .= "Сайт: {$site}\n";
         } else {
