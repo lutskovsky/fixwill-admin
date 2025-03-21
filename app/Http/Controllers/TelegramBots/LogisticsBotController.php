@@ -290,8 +290,6 @@ class LogisticsBotController extends Controller
             $text .= "Неисправность: {$fault}\n";
             $comment = $order['custom_fields']['f1482266'] ?? '';
             $text .= "Примечание: {$comment}\n";
-            $comment = $order['custom_fields']['f1482266'] ?? '';
-            $text .= "Примечание: {$comment}\n";
             $paid = $order['custom_fields']['f8547733'] ?? '';
             $text .= "Платный привоз: {$paid}\n";
             $site = $order['custom_fields']['f4196099'] ?? '';
