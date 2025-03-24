@@ -43,7 +43,7 @@ class RemonlineApi
         );
         $result = json_decode($response->getBody(), true);
         if (!$result || !isset($result['token'])) {
-            throw new Exception("Ошибка соединения с Ремонлайном");
+            throw new Exception("Ошибка соединения с Ремонлайном: \n" . print_r($result, true));
         }
         $this->token = $result['token'];
         return $this->token;
