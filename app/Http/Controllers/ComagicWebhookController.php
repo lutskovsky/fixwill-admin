@@ -112,7 +112,7 @@ class ComagicWebhookController extends Controller
 
     public function create(Request $request)
     {
-        Log::channel('comagic')->info($request->query());
+        Log::channel('create-order')->info($request->query());
 
         $rem = new RemonlineApi();
 
@@ -158,6 +158,9 @@ class ComagicWebhookController extends Controller
                 continue;
             }
 
+
+            Log::channel('create-order')->info('Order was not created - found open order');
+
             // Если мы дошли досюда, значит это открытый заказ по тому же сценарию и новый создавать не надо
             return response('Order was not created - found open order', 200);
         }
@@ -168,8 +171,11 @@ class ComagicWebhookController extends Controller
         if ($clients['count'] == 0) {
             $response = $rem->createClient(['name' => "Новый клиент", 'phone' => [$number]]);
             $clientId = $response['data']['id'];
+
+            Log::channel('create-order')->info("Created client $clientId");
         } else {
             $clientId = $clients['data'][0]['id'];
+            Log::channel('create-order')->info("Found client $clientId");
         }
 
         /** @var array $orderTypes */
@@ -192,6 +198,10 @@ class ComagicWebhookController extends Controller
 
             'custom_fields' => $customFields
         ]);
+
+        $orderId = $resp['data']['id'];
+
+        Log::channel('create-order')->info("Created order $orderId");
         return response('Order created', 200);
     }
 
