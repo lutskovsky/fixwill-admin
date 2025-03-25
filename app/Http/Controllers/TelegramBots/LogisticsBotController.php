@@ -11,6 +11,8 @@ use App\Services\Telegram\TelegramBotService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+
 
 class LogisticsBotController extends Controller
 {
@@ -41,6 +43,7 @@ class LogisticsBotController extends Controller
     public function handle(Request $request)
     {
         $data = $request->all();
+        Log::channel('telegram')->info($data);
 
         if (isset($data['callback_query'])) {
             $this->handleCallback($data);
@@ -136,6 +139,7 @@ class LogisticsBotController extends Controller
             if ($onlyActive) {
                 $trips = CourierTrip::where('courier_id', $courier->id)
                     ->where('active', true)
+                    ->where('moved_on', false)
                     ->get();
             } else {
                 $trips = CourierTrip::where('courier_id', $courier->id)
