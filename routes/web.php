@@ -18,6 +18,10 @@ Route::get('/', function () {
     ]);
 });
 
+Route::any('/null', function () {
+    return 'ok';
+});
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
