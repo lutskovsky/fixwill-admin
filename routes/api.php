@@ -8,15 +8,14 @@ use App\Http\Controllers\ReportPresetController;
 use App\Http\Controllers\StatusChangeController;
 use App\Http\Controllers\TelegramBots\CallNotificationsBotController;
 use App\Http\Controllers\TelegramBots\LogisticsBotController;
-use App\Http\Controllers\TelegramController;
 use App\Listeners\TransferIssueNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-Route::any('/null', function () {
-    return 'ok';
-});
+Route::any('null/{path?}', function () {
+    return response()->noContent(200);
+})->where('path', '.*');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
