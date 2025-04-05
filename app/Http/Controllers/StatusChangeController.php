@@ -10,6 +10,7 @@ use App\Models\Status;
 use App\Models\StatusChange;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class StatusChangeController extends Controller
 {
@@ -22,6 +23,7 @@ class StatusChangeController extends Controller
         ]);
 
         $orderId = $validated['context']['object_id'];
+        Log::info("OrderId: $orderId");
         $newStatusId = $validated['metadata']['new']['id'];
         $statusChange = StatusChange::create([
             'new_status_id' => $newStatusId,

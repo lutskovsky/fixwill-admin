@@ -53,6 +53,7 @@ class TransferIssueNotification
         }
 //
         $orderId = $event->statusChange->order_id;
+        Log::info("Order id in TransferIssueNotification: $orderId");
 //
 //        $order = $this->remonline->getOrderById($orderId);
 
