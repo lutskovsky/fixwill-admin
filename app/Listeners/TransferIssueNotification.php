@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Status;
 use App\Models\TransferIssue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -60,7 +61,9 @@ class TransferIssueNotification
 
 
         $initialDate = Order::find($orderId)->value('initial_pickup_date');
+        Log::info($initialDate);
         $initialDate = $initialDate ? RemonlineApi::convertDate($initialDate) : 'не задано';
+        Log::info('converted: ' . $initialDate);
 
         $oldDate = $event->oldData['custom_fields']['f1482265'] ?? 0;
         $oldDate = $oldDate ? RemonlineApi::convertDate($oldDate) : 'не задано';

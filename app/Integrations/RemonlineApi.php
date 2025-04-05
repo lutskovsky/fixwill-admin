@@ -61,7 +61,7 @@ class RemonlineApi
         $response = $this->client->request($httpMethod, $url);
 
         $body = json_decode($response->getBody(), true);
-        if ($body['success']) {
+        if ($body && $body['success']) {
             return $body;
         } else {
             if ($try > 3) {
