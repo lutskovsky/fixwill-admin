@@ -61,7 +61,7 @@ class TransferIssueNotification
         $order = $event->newData;
 
 
-        $initialDate = Order::find($orderId)->value('initial_pickup_date');
+        $initialDate = Order::find($orderId)->initial_pickup_date;
         Log::info($initialDate);
         $initialDate = $initialDate ? RemonlineApi::convertDate($initialDate) : 'не задано';
         Log::info('converted: ' . $initialDate);
