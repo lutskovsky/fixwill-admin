@@ -384,6 +384,7 @@ const columnDefs = ref([
     {headerName: "Город", field: "city"},
     {headerName: "Тип устройства", field: "device_type"},
     {headerName: "Бренд", field: "brand"},
+    {headerName: "Бренды БТ", field: "home_appliance_brands"},
     {headerName: "Диагональ", field: "diagonal"},
     {headerName: "Мастер", field: "master"},
     {headerName: "Оператор", field: "operator"},

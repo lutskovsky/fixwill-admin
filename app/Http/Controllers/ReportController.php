@@ -169,6 +169,7 @@ class ReportController extends Controller
                 'closed_date' => $closedDate,
                 'created_date' => $createdDate,
                 'device_type' => $order["custom_fields"]["f1070009"] ?? '',
+                'home_appliance_brands' => $order["custom_fields"]["f6012390"] ?? '',
                 'city' => $order["custom_fields"]["f5192512"] ?? '',
                 'diagonal' => $order["custom_fields"]["f1536267"] ?? '',
                 'brand' => $order["custom_fields"]["f1070012"] ?? '',
