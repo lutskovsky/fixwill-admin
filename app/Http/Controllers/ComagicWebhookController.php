@@ -130,6 +130,7 @@ class ComagicWebhookController extends Controller
         $dbScenario = Scenario::where('name', $scenario)->first();
 
         if ($dbScenario && $dbScenario->skip_order_creation) {
+            Log::channel('create-order')->info('Order was not created - excluded scenario');
             return response('Order was not created - excluded scenario', 200);
         }
 

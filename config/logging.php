@@ -140,6 +140,13 @@ return [
             'level' => 'debug',
         ],
 
+        'comagic_chat' => [
+            'driver' => 'daily',
+            // or 'daily' if you want a new file per day
+            'path' => storage_path('logs/chat.log'),
+            'level' => 'debug',
+        ],
+
         'create-order' => [
             'driver' => 'daily',
             // or 'daily' if you want a new file per day

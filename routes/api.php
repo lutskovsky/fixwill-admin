@@ -10,10 +10,12 @@ use App\Http\Controllers\TelegramBots\CallNotificationsBotController;
 use App\Http\Controllers\TelegramBots\LogisticsBotController;
 use App\Listeners\TransferIssueNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 
-Route::any('null/{path?}', function () {
+Route::any('null/{path?}', function (Request $request) {
+    Log::channel('comagic_chat')->info($request->all());
     return response()->noContent(200);
 })->where('path', '.*');
 
