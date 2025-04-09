@@ -466,9 +466,9 @@ class LogisticsBotController extends Controller
         $orderId = $trip->order_id;
         $buttons = [];
 
-        if (!$trip->active) {
-            return $buttons;
-        }
+//        if (!$trip->active) {
+//            return $buttons;
+//        }
 
 //        if ($this->mode == 'manager') {
 //            $buttons[] = [[
