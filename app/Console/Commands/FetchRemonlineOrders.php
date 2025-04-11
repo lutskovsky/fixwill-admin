@@ -6,7 +6,6 @@ use App\Http\Controllers\TelegramBots\LogisticsBotController;
 use App\Integrations\RemonlineApi;
 use App\Models\Courier;
 use App\Models\CourierTrip;
-use App\Services\Telegram\TelegramBotService;
 use Exception;
 use Illuminate\Console\Command;
 
@@ -31,10 +30,6 @@ class FetchRemonlineOrders extends Command
      */
     public function handle()
     {
-
-        $token = config('telegramBots.logistics');// Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
-        $botService = new TelegramBotService($token);
-
         $this->info('Fetching orders from Remonline...');
 
         $remonline = new RemonlineApi();
@@ -50,8 +45,6 @@ class FetchRemonlineOrders extends Command
             }
         }
 
-        $remonlineOrderIds = array_column($orders, 'id');
-
         foreach ($orders as $order) {
             if ($order['status']['id'] == 435391) {
                 $direction = 'отвоз';
@@ -63,61 +56,34 @@ class FetchRemonlineOrders extends Command
 
             $courier = Courier::where('name', $courierName)->first();
 
-//            if (!$courier) {
-//                $this->warn("No user found for courier: {$courierName}. Skipping order_id: {$order['id']}.");
-//                continue;
-//            }
-
             $this->info("Order {$order['id']} {$courierName}");
-            $data = [
-                'order_label' => $order['id_label'],
-                'direction' => $direction,
-                'courier' => $courierName,
-                'order_id' => $order['id'],
-                'courier_id' => $courier->id ?? null,
-                'courier_type' => $order['custom_fields']['f1620346'] ?? '',
-            ];
 
-            $existingTrip = CourierTrip::where('order_id', $order['id'])
-                ->where('direction', $direction)
+            $existingTrip = CourierTrip::current()
+                ->where('order_id', $order['id'])
+                ->where('courier', $courierName)
                 ->first();
 
-            $notifyFlag = false;
+            if (!$existingTrip) {
+                $data = [
+                    'order_label' => $order['id_label'],
+                    'status' => 'Назначен',
+                    'direction' => $direction,
+                    'courier' => $courierName,
+                    'order_id' => $order['id'],
+                    'courier_id' => $courier->id ?? null,
+                    'courier_type' => $order['custom_fields']['f1620346'] ?? '',
+                ];
 
-            if ($existingTrip) {
-                if ($existingTrip->courier != $courierName || $existingTrip->moved_on) {
-                    $existingTrip->status = 'Назначен';
-                    $existingTrip->moved_on = false;
-                    $notifyFlag = true;
-                }
-
-                if ($existingTrip->courier != $courierName) {
-                    $existingTrip->arrival_time = null;
-                }
-
-                $existingTrip->update($data);
-            } else {
-                $data['status'] = 'Назначен';
                 CourierTrip::create($data);
-                $notifyFlag = true;
-            }
 
-            if (!$courier) {
-                continue;
-            }
-
-            if ($courier->chat_id && $notifyFlag) {
-                $bot = new LogisticsBotController($courier->chat_id);
-                $bot->showTripDetails($order['id'], true);
-
-//                $messageText = "Новый {$direction}\n";
-//                $messageText .= "{$order['client']['address']}\n";
-//                $messageText .= "Подробнее: /order_{$order['id']}\n";
-//                $botService->sendMessage($courier->chat_id, $messageText);
+                if ($courier && $courier->chat_id) {
+                    $bot = new LogisticsBotController($courier->chat_id);
+                    $bot->showTripDetails($order['id'], true);
+                }
             }
         }
 
-        CourierTrip::whereNotIn('order_id', $remonlineOrderIds)->update(['moved_on' => true]);
+        CourierTrip::whereNotIn('order_id', array_column($orders, 'id'))->update(['moved_on' => true]);
 
         $this->info('All orders synced.');
         return 0;
