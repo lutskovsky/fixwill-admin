@@ -55,7 +55,7 @@ return [
         'reschedule' => env('APP_ENV') == 'production' ? '-1002262693482' : '-1002561928930',
         'refusal' => env('APP_ENV') == 'production' ? '-1002453942748' : '-1002561928930',
         'transfer_supervisors' => env('APP_ENV') == 'production' ? '-1002185400566' : '-1002561928930',
-        'potential' => env('APP_ENV') == 'production' ? '-4628557646' : '-4628557646',
+        'potential' => env('APP_ENV') == 'production' ? '-1002564035785' : '-1002561928930',
     ],
 
     /*

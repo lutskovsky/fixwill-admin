@@ -51,13 +51,22 @@ class CheckPotential extends Command
             if ($order['created_at'] != $order['modified_at']) {
                 continue;
             }
-            $createdAt = $order['created_at'];
-            if ($createdAt / 1000 < time() - 2 * 60) {
-                $bot->sendMessage([
-                    'chat_id' => config('telegram.chats.potential'),
-                    'text' => "Потенциальный заказ <a href='https://web.remonline.app/orders/table/{$order['id']}'>{$order['id_label']}</a> не обработан!",
-                    'parse_mode' => 'html']);
+            $createdAt = $order['created_at'] / 1000;
+            $now = time();
+            if ($createdAt < $now - 10 * 60) {
+                $msg = "🔥🔥🔥 <a href='https://web.remonline.app/orders/table/{$order['id']}'>{$order['id_label']}</a> - 10 мин";
+            } elseif ($createdAt < $now - 5 * 60) {
+                $msg = "🔴 <a href='https://web.remonline.app/orders/table/{$order['id']}'>{$order['id_label']}</a> - 5 мин";
+            } elseif ($createdAt < $now - 1 * 60) {
+                $msg = "🟡 <a href='https://web.remonline.app/orders/table/{$order['id']}'>{$order['id_label']}</a> - 1 мин";
+            } else {
+                continue;
             }
+
+            $bot->sendMessage([
+                'chat_id' => config('telegram.chats.potential'),
+                'text' => $msg,
+                'parse_mode' => 'html']);
         }
     }
 }
