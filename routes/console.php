@@ -1,6 +1,7 @@
 <?php
 
-Schedule::command('remonline:fetch-orders')->everyMinute();
+Schedule::command('remonline:fetch-orders')
+    ->everyMinute();
 
 Schedule::command('issues:escalate')
     ->everyMinute()
@@ -8,3 +9,6 @@ Schedule::command('issues:escalate')
     ->withoutOverlapping();
 Schedule::command('issues:escalate --postponed')
     ->dailyAt('21:00');
+
+Schedule::command('remonline:check-potential')
+    ->everyMinute();

@@ -38,6 +38,13 @@ return [
                 // Acme\Project\Commands\MyTelegramBot\BotCommand::class
             ],
         ],
+        'notifications' => [
+            'token' => env('TELEGRAM_BOT_TOKEN_NOTIFICATIONS'),
+            'allowed_updates' => null,
+            'commands' => [
+                // Acme\Project\Commands\MyTelegramBot\BotCommand::class
+            ],
+        ],
 
         //        'mySecondBot' => [
         //            'token' => '123456:abc',
@@ -48,6 +55,7 @@ return [
         'reschedule' => env('APP_ENV') == 'production' ? '-1002262693482' : '-1002561928930',
         'refusal' => env('APP_ENV') == 'production' ? '-1002453942748' : '-1002561928930',
         'transfer_supervisors' => env('APP_ENV') == 'production' ? '-1002185400566' : '-1002561928930',
+        'potential' => env('APP_ENV') == 'production' ? '-4628557646' : '-4628557646',
     ],
 
     /*
