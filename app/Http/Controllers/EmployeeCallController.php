@@ -134,12 +134,12 @@ class EmployeeCallController extends Controller
             'scenario_id' => 545220
         ];
 
-        $result = $client->call('call', 'start.scenario_call', $callParams);
+//        $result = $client->call('call', 'start.scenario_call', $callParams);
         Log::channel('comagic')->info('start.scenario_call:');
         Log::channel('comagic')->info($callParams);
-        Log::channel('comagic')->info($result);
+//        Log::channel('comagic')->info($result);
 
-        return $result;
+        return response('OK', 200);
 
     }
 }
