@@ -114,9 +114,32 @@ class EmployeeCallController extends Controller
         ];
 
         $result = $client->call('call', 'start.employee_call', $callParams);
+
+        Log::channel('comagic')->info('start.employee_call:');
         Log::channel('comagic')->info($callParams);
         Log::channel('comagic')->info($result);
 
         return $result;
+    }
+
+    public function scenarioCall(Request $request)
+    {
+        $number = $request->input('number');
+
+        $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
+        $callParams = [
+            'first_call' => 'employee',
+            'virtual_phone_number' => '79326982662',
+            'contact' => $number,
+            'scenario_id' => 545220
+        ];
+
+        $result = $client->call('call', 'start.scenario_call', $callParams);
+        Log::channel('comagic')->info('start.scenario_call:');
+        Log::channel('comagic')->info($callParams);
+        Log::channel('comagic')->info($result);
+
+        return $result;
+
     }
 }

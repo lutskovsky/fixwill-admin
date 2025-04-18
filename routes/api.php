@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ComagicWebhookController;
+use App\Http\Controllers\EmployeeCallController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReportController;
@@ -24,7 +25,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('webhook')->group(function () {
-//    Route::post('telegram', [TelegramController::class, 'handle']);
+    Route::prefix('fixcpa')->group(function () {
+        Route::post('call', [EmployeeCallController::class, 'scenarioCall']);
+    });
     Route::prefix('call')->group(function () {
         Route::get('notify', [ComagicWebhookController::class, 'notify']);
         Route::get('create-order', [ComagicWebhookController::class, 'create']);
