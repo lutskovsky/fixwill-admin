@@ -60,10 +60,13 @@ class FetchRemonlineOrders extends Command
 
             $existingTrip = CourierTrip::current()
                 ->where('order_id', $order['id'])
+                ->where('moved_on', false)
                 ->where('courier', $courierName)
                 ->first();
 
             if (!$existingTrip) {
+
+                $this->info("creating new trip");
                 $data = [
                     'order_label' => $order['id_label'],
                     'status' => 'Назначен',
