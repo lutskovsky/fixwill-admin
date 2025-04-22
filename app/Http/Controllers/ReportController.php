@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
+use App\Models\EquipmentAlias;
 use App\Models\RemonlineOrderStatus;
 use App\Models\RemonlineOrderType;
 use App\Models\ReportPreset;
@@ -105,6 +106,8 @@ class ReportController extends Controller
             $query['page']++;
         } while (count($orders) < $response['count']);
 
+        $equipmentAliases = EquipmentAlias::pluck('alias', 'target')->toArray();
+
         $out = [];
         foreach ($orders as $order) {
             if (isset($order['closed_at'])) {
@@ -162,13 +165,16 @@ class ReportController extends Controller
                 $success = (int)in_array($statusId, $successfulStatuses);
             }
 
+            $deviceType = $order["custom_fields"]["f1070009"] ?? '';
+            $deviceType = $equipmentAliases[$deviceType] ?? $deviceType;
+
             $item = [
                 'id' => $orderId,
                 'label' => $order['id_label'],
                 'status' => $order['status']['name'] ?? null,
                 'closed_date' => $closedDate,
                 'created_date' => $createdDate,
-                'device_type' => $order["custom_fields"]["f1070009"] ?? '',
+                'device_type' => $deviceType,
                 'home_appliance_brands' => $order["custom_fields"]["f6012390"] ?? '',
                 'city' => $order["custom_fields"]["f5192512"] ?? '',
                 'diagonal' => $order["custom_fields"]["f1536267"] ?? '',

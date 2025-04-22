@@ -35,4 +35,6 @@ Route::group([
     ])->middleware('web');
     Route::crud('status', 'StatusCrudController');
     Route::crud('order-type', 'OrderTypeCrudController');
+//    Route::crud('equipment-group', 'EquipmentGroupCrudController');
+    Route::crud('equipment-alias', 'EquipmentAliasCrudController');
 }); // this should be the absolute last line of this file

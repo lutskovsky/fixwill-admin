@@ -13,3 +13,6 @@
 <x-backpack::menu-item title="Статусы" icon="la la-stream" :link="backpack_url('status')"/>
 
 <x-backpack::menu-item title="Типы заказа" icon="la la-tags" :link="backpack_url('order-type')"/>
+
+<x-backpack::menu-item title="Замены типов оборудования" icon="la la-exchange-alt"
+                       :link="backpack_url('equipment-alias')"/>
