@@ -106,6 +106,7 @@ class LogisticsBotController extends Controller
         }
 
         if ($message === '/history') {
+            return;
             // ... Show short list of user's trips ...
             $this->listAllTripsShort($courier, false);
             return response('OK', 200);

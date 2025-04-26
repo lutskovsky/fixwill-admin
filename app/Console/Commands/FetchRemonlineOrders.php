@@ -55,6 +55,9 @@ class FetchRemonlineOrders extends Command
             }
 
             $courier = Courier::where('name', $courierName)->first();
+            if (!$courier) {
+                continue;
+            }
 
             $this->info("Order {$order['id']} {$courierName}");
 
