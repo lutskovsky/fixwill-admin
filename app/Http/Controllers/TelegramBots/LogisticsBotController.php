@@ -175,6 +175,7 @@ class LogisticsBotController extends Controller
 
             if ($onlyActive) {
                 $trips = CourierTrip::where('active', true)
+                    ->where('moved_on', false)
                     ->get();
             } else {
                 $trips = CourierTrip::where('active', false)
