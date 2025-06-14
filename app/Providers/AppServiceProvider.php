@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Admin\UserCrudController;
+use App\Http\Requests\UserStoreCrudRequest;
+use App\Http\Requests\UserUpdateCrudRequest;
+use App\Services\Comagic\ComagicService;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +16,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(ComagicService::class, function ($app) {
+            return new ComagicService();
+        });
     }
 
     /**
@@ -27,15 +32,15 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(
             \Backpack\PermissionManager\app\Http\Controllers\UserCrudController::class, //this is package controller
-            \App\Http\Controllers\Admin\UserCrudController::class //this should be your own controller
+            UserCrudController::class //this should be your own controller
         );
         $this->app->bind(
             \Backpack\PermissionManager\app\Http\Requests\UserUpdateCrudRequest::class, //this is package controller
-            \App\Http\Requests\UserUpdateCrudRequest::class //this should be your own controller
+            UserUpdateCrudRequest::class //this should be your own controller
         );
         $this->app->bind(
             \Backpack\PermissionManager\app\Http\Requests\UserStoreCrudRequest::class, //this is package controller
-            \App\Http\Requests\UserStoreCrudRequest::class //this should be your own controller
+            UserStoreCrudRequest::class //this should be your own controller
         );
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\EmployeeCallController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\OrderClientController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -55,3 +56,8 @@ Route::get('/client/order/{orderLabel}', [OrderClientController::class, 'getClie
     ->where('orderLabel', '.*')
     ->middleware('auth');
 
+Route::middleware(['auth'])->prefix('messages')->group(function () {
+    Route::post('/send', [MessageController::class, 'send'])->name('messages.send');
+    Route::get('/history', [MessageController::class, 'history'])->name('messages.history');
+    Route::get('/chats/{phone}', [MessageController::class, 'chats'])->name('messages.chats');
+});

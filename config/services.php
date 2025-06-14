@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'comagic' => [
+        'username' => env('COMAGIC_USERNAME', 'fixwill'),
+        'password' => env('COMAGIC_PASSWORD', 'rasa1hague'),
+    ],
 
 ];

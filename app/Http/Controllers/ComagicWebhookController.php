@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
 use App\Listeners\TransferIssueNotification;
+use App\Models\Chat;
+use App\Models\Message;
 use App\Models\Scenario;
 use App\Models\Status;
 use App\Models\TransferIssue;
 use App\Models\User;
 use App\Services\Telegram\TelegramBotService;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -17,8 +21,12 @@ class ComagicWebhookController extends Controller
 {
     const SITE_ORDER_FIELD = 'f4196099';
 
+    /**
+     * Main handler that routes to specific webhook handlers
+     */
     public function handle(Request $request)
     {
+        // Handle call webhooks (existing functionality)
         if ($request->action == 'notify') {
             return $this->notify($request);
         } elseif ($request->action == 'create') {
@@ -30,6 +38,76 @@ class ComagicWebhookController extends Controller
         return response('Wrong action', 400);
     }
 
+    /**
+     * Handle incoming chat message webhook
+     */
+    public function handleChatMessage(Request $request)
+    {
+        try {
+            // Log the incoming webhook for debugging
+            Log::channel('comagic_chat')->info('Incoming chat message webhook:', $request->all());
+
+            // Extract data from webhook
+            $data = $request->all();
+
+            // Validate required fields
+            if (!isset($data['id']) || !isset($data['chat_id']) || !isset($data['text'])) {
+                Log::channel('comagic_chat')->error('Missing required fields in webhook');
+                return response()->json(['error' => 'Missing required fields'], 400);
+            }
+
+            // Determine message type based on channel_id
+            $type = $this->getTypeByChannelId($data['channel_id']);
+
+            // Find or create chat
+            $chat = Chat::find($data['chat_id']);
+
+            if (!$chat) {
+                return response()->json(['status' => 'ok']);
+            }
+
+            // Check if message already exists (to prevent duplicates)
+            $existingMessage = Message::find($data['id']);
+            if ($existingMessage) {
+                Log::channel('comagic_chat')->info('Message already exists, skipping', ['message_id' => $data['id']]);
+                return response()->json(['status' => 'ok']);
+            }
+
+            // Create new message
+            $message = Message::create([
+                'id' => $data['id'],
+                'chat_id' => $chat->id,
+                'text' => $data['text'],
+                'source' => $data['source'],
+                'sent_at' => Carbon::parse($data['created_at']),
+            ]);
+
+            Log::channel('comagic_chat')->info('Message saved successfully', [
+                'message_id' => $message->id,
+                'chat_id' => $chat->id,
+                'source' => $message->source
+            ]);
+
+            // Notify operators if message is from visitor
+//            if ($data['source'] === 'visitor') {
+//                $this->notifyOperatorsAboutMessage($chat, $message);
+//            }
+
+            return response()->json(['status' => 'ok']);
+
+        } catch (Exception $e) {
+            Log::channel('comagic_chat')->error('Error processing chat webhook: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return success anyway to prevent webhook retries
+            return response()->json(['status' => 'ok']);
+        }
+    }
+
+    /**
+     * Existing notify method for call webhooks
+     */
     public function notify(Request $request)
     {
         $contactPhoneNumber = $request->query('contact_phone_number');
@@ -72,7 +150,6 @@ class ComagicWebhookController extends Controller
             }
         }
 
-
         foreach ($orders as $order) {
             $clientId = $order['client']['id'];
             if (!isset($msgData[$clientId])) {
@@ -110,6 +187,9 @@ class ComagicWebhookController extends Controller
         return response('OK', 200);
     }
 
+    /**
+     * Existing create method for order creation
+     */
     public function create(Request $request)
     {
         Log::channel('create-order')->info($request->query());
@@ -159,7 +239,6 @@ class ComagicWebhookController extends Controller
                 continue;
             }
 
-
             Log::channel('create-order')->info('Order was not created - found open order');
 
             // Если мы дошли досюда, значит это открытый заказ по тому же сценарию и новый создавать не надо
@@ -183,9 +262,6 @@ class ComagicWebhookController extends Controller
         /** @var array $remonlineCustomFields */
         $customFields = [
             5192512 => 'Москва',
-//    1070009 => 'Неизвестно',
-//    1070012 => 'Неизвестно',
-//    2129012 => 'Неизвестно',
             4196099 => $scenario
         ];
 
@@ -196,7 +272,6 @@ class ComagicWebhookController extends Controller
             'branch_id' => 50230,
             'order_type' => 89790,
             'client_id' => $clientId,
-
             'custom_fields' => $customFields
         ]);
 
@@ -206,6 +281,9 @@ class ComagicWebhookController extends Controller
         return response('Order created', 200);
     }
 
+    /**
+     * Report courier call error
+     */
     public function reportCourierCallError(Request $request)
     {
         $sessionId = $request->query("call_session_id");
@@ -217,6 +295,9 @@ class ComagicWebhookController extends Controller
         }
     }
 
+    /**
+     * Handle outgoing call webhook
+     */
     public function outgoingCall(Request $request)
     {
         $issues = TransferIssue::whereJsonContains('phones', $request->query('number'))->get();
@@ -230,5 +311,38 @@ class ComagicWebhookController extends Controller
             }
         }
         return response('OK', 200);
+    }
+
+    /**
+     * Determine message type by channel ID
+     */
+    private function getTypeByChannelId($channelId)
+    {
+        $channelTypes = [
+            37010 => 'whatsapp',
+            37011 => 'sms', // Update with your actual SMS channel ID
+        ];
+
+        return $channelTypes[$channelId] ?? 'unknown';
+    }
+
+
+    /**
+     * Notify operators about new message
+     */
+    private function notifyOperatorsAboutMessage($chat, $message)
+    {
+        // Update unread count in cache
+        $unreadKey = 'unread_messages_' . $chat->id;
+        Cache::increment($unreadKey);
+
+        Log::channel('comagic_chat')->info('New visitor message received', [
+            'chat_id' => $chat->id,
+            'phone' => $chat->visitor_phone,
+            'message_preview' => substr($message->text, 0, 50) . '...'
+        ]);
+
+        // Optional: Send Telegram notification to operators
+        // $this->sendTelegramNotificationAboutMessage($chat, $message);
     }
 }

@@ -11,14 +11,8 @@ use App\Http\Controllers\TelegramBots\CallNotificationsBotController;
 use App\Http\Controllers\TelegramBots\LogisticsBotController;
 use App\Listeners\TransferIssueNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
-
-Route::any('null/{path?}', function (Request $request) {
-    Log::channel('comagic_chat')->info($request->all());
-    return response()->noContent(200);
-})->where('path', '.*');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -33,7 +27,24 @@ Route::prefix('webhook')->group(function () {
         Route::get('create-order', [ComagicWebhookController::class, 'create']);
         Route::get('outgoing', [ComagicWebhookController::class, 'outgoingCall']);
     });
+
+    // Main comagic webhook handler (existing)
     Route::get('comagic', [ComagicWebhookController::class, 'handle']);
+
+    // Comagic chat webhooks
+    Route::prefix('comagic/chatservice')->group(function () {
+        // IMPORTANT: Specific routes must come BEFORE the catch-all
+
+        // Process message webhook
+        Route::post('message', [ComagicWebhookController::class, 'handleChatMessage'])
+            ->name('webhook.comagic.chat.message');
+
+        // Catch-all for any other chatservice endpoints - always return 200
+        Route::any('{any?}', function (Request $request) {
+            return response()->json(['status' => 'ok'], 200);
+        })->where('any', '.*');
+    });
+
     Route::get('courier_error', [ComagicWebhookController::class, 'reportCourierCallError']);
 
     Route::post('status-change', [StatusChangeController::class, 'store']);
@@ -54,4 +65,3 @@ Route::get('/report-presets', [ReportPresetController::class, 'index']);
 // Route to store a new report preset
 Route::post('/report-presets', [ReportPresetController::class, 'store'])->name('report.preset.store');
 Route::delete('/report-presets/{id}', [ReportPresetController::class, 'delete'])->name('report.preset.delete');
-
