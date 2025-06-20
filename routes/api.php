@@ -41,6 +41,12 @@ Route::prefix('webhook')->group(function () {
 
         // Catch-all for any other chatservice endpoints - always return 200
         Route::any('{any?}', function (Request $request) {
+            Log::channel('comagic_chat')->info('Catch-all webhook hit', [
+                'method' => $request->method(),
+                'path' => $request->path(),
+                'data' => $request->all()
+            ]);
+
             return response()->json(['status' => 'ok'], 200);
         })->where('any', '.*');
     });
