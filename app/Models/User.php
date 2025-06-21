@@ -75,7 +75,8 @@ class User extends Authenticatable
         'internal_phone',
         'tg_login',
         'chat_id',
-        'remonline_courier'
+        'remonline_courier',
+        'group_id'
     ];
 
     /**
@@ -111,6 +112,10 @@ class User extends Authenticatable
         return $this->belongsToMany(VirtualNumber::class, 'user_virtual_number');
     }
 
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
+    }
 
     public function getVirtualNumbersListAttribute()
     {

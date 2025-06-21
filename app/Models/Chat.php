@@ -15,7 +15,7 @@ class Chat extends Model
     protected $fillable = [
         'id',
         'visitor_phone',
-        'type',
+        'channel_id',
     ];
 
     public function messages()
@@ -23,9 +23,9 @@ class Chat extends Model
         return $this->hasMany(Message::class);
     }
 
-    public function scopeByPhoneAndType($query, $phone, $type)
+    public function scopeByPhoneAndChannel($query, $phone, $channelId)
     {
         return $query->where('visitor_phone', $phone)
-            ->where('type', $type);
+            ->where('channel_id', $channelId);
     }
 }

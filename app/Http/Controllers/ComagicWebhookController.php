@@ -56,9 +56,6 @@ class ComagicWebhookController extends Controller
                 return response()->json(['error' => 'Missing required fields'], 400);
             }
 
-            // Determine message type based on channel_id
-            $type = $this->getTypeByChannelId($data['channel_id']);
-
             // Find or create chat
             $chat = Chat::find($data['chat_id']);
 
@@ -312,20 +309,6 @@ class ComagicWebhookController extends Controller
         }
         return response('OK', 200);
     }
-
-    /**
-     * Determine message type by channel ID
-     */
-    private function getTypeByChannelId($channelId)
-    {
-        $channelTypes = [
-            37010 => 'whatsapp',
-            37011 => 'sms', // Update with your actual SMS channel ID
-        ];
-
-        return $channelTypes[$channelId] ?? 'unknown';
-    }
-
 
     /**
      * Notify operators about new message

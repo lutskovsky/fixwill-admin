@@ -233,6 +233,12 @@ class UserCrudController extends CrudController
                 'label' => trans('backpack::permissionmanager.password_confirmation'),
                 'type' => 'password',
             ],
+
+            [  // Select
+                'label'     => "Группа",
+                'type'      => 'select',
+                'name'      => 'group_id', // the db column for the foreign key
+            ],
             [
                 'name' => 'internal_phone',
                 'label' => 'Внутренний номер',

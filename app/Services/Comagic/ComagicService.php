@@ -4,8 +4,10 @@ namespace App\Services\Comagic;
 
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,12 +16,27 @@ class ComagicService
 {
     private const BASE_URL = 'https://chat-integration-api-prod.uiscom.ru/v1/adapter';
     private const ACCOUNT_ID = 4308;
-    private const OPERATOR_ID = 1826499;
+    private const OPERATOR_ID = 9294361;
 
-    private const CHANNEL_IDS = [
-        'whatsapp' => 37010,
-        'sms' => 37011, // Update with actual SMS channel ID
-    ];
+    private $channelIds = [];
+
+    private $user;
+
+    public function __construct(User $user = null)
+    {
+        $this->user = $user ?: Auth::user();
+
+        if (!$this->user) {
+            throw new Exception('User must be authenticated to use ComagicService');
+        }
+
+        if (!$this->user->group) {
+            throw new Exception('User is not assigned to any group');
+        }
+
+        $this->channelIds['whatsapp'] = $this->user->group?->whatsappChannel?->comagic_id;
+        $this->channelIds['sms'] = $this->user->group?->smsChannel?->comagic_id;
+    }
 
     /**
      * Send a message
@@ -36,9 +53,14 @@ class ComagicService
             $chat = $this->getOrCreateChat($phone, $type);
 
             // Send message
+            $channelId = $this->channelIds[$type];
+            if (!$channelId) {
+                throw new Exception('Channel not configured for user\'s group');
+            }
+
             $messageData = [
                 'account_id' => self::ACCOUNT_ID,
-                'channel_id' => self::CHANNEL_IDS[$type],
+                'channel_id' => $channelId,
                 'chat_id' => $chat->id,
                 'source' => 'operator',
                 'operator_id' => self::OPERATOR_ID,
@@ -74,8 +96,13 @@ class ComagicService
      */
     private function getOrCreateChat($phone, $type)
     {
+        $channelId = $this->channelIds[$type];
+        if (!$channelId) {
+            throw new Exception('Channel not configured for user\'s group');
+        }
+
         // Check if chat exists
-        $chat = Chat::byPhoneAndType($phone, $type)->first();
+        $chat = Chat::byPhoneAndChannel($phone, $channelId)->first();
 
         if ($chat) {
             return $chat;
@@ -84,7 +111,7 @@ class ComagicService
         // Create new chat
         $chatData = [
             'account_id' => self::ACCOUNT_ID,
-            'channel_id' => self::CHANNEL_IDS[$type],
+            'channel_id' => $channelId,
             'visitor_phone' => $phone,
             'operator_id' => self::OPERATOR_ID,
             'initiator' => 'operator',
@@ -97,7 +124,7 @@ class ComagicService
         $chat = Chat::create([
             'id' => $response['chat_id'],
             'visitor_phone' => $response['visitor_phone'],
-            'type' => $type,
+            'channel_id' => $channelId,
         ]);
 
         return $chat;
@@ -171,7 +198,13 @@ class ComagicService
      */
     public function getChatHistory($phone, $type)
     {
-        $chat = Chat::byPhoneAndType($phone, $type)->first();
+        $channelId = $this->channelIds[$type];
+        if (!$channelId) {
+            throw new Exception('Channel not configured for user\'s group');
+        }
+
+        // Check if chat exists
+        $chat = Chat::byPhoneAndChannel($phone, $channelId)->first();
 
         if (!$chat) {
             return collect();
