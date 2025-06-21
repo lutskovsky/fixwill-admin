@@ -11,8 +11,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('user_virtual_number', function (Blueprint $table) {
-            // Just drop the old foreign key constraint
-            $table->dropForeign('employee_virtual_number_employee_id_foreign');
+            // Raw DB because some problem on the server
+            DB::statement('ALTER TABLE user_virtual_number DROP FOREIGN KEY IF EXISTS employee_virtual_number_employee_id_foreign');
         });
     }
 
