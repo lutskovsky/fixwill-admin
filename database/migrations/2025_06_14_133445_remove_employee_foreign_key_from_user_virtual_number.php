@@ -11,8 +11,17 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('user_virtual_number', function (Blueprint $table) {
-            // Raw DB because some problem on the server
-            DB::statement('ALTER TABLE user_virtual_number DROP FOREIGN KEY IF EXISTS employee_virtual_number_employee_id_foreign');
+            try {
+                DB::statement('ALTER TABLE user_virtual_number DROP FOREIGN KEY employee_virtual_number_employee_id_foreign');
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Check if it's specifically the "Can't DROP" error
+                if (strpos($e->getMessage(), "Can't DROP") !== false) {
+                    // Foreign key doesn't exist, that's fine
+                    return;
+                }
+                // If it's a different error, re-throw it
+                throw $e;
+            }
         });
     }
 
