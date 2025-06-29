@@ -40,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/client/create', [OrderClientController::class, 'createClientAndOrder'])->name('client.create');
     Route::post('/client/{clientId}/update', [OrderClientController::class, 'updateClient'])->name('client.update');
 
+    Route::get('/client/order/{orderLabel}', [OrderClientController::class, 'getClientByOrderLabel'])
+        ->name('client.order.show')
+        ->where('orderLabel', '.*');
+
     Route::get('/virtual_numbers', [RegisteredUserController::class, 'getVirtualNumbers'])->name('user.virtual_numbers.get');
     Route::post('employee-call', [EmployeeCallController::class, 'handle'])->name('employee.call');
 
@@ -51,10 +55,6 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__ . '/auth.php';
 
-Route::get('/client/order/{orderLabel}', [OrderClientController::class, 'getClientByOrderLabel'])
-    ->name('client.order.show')
-    ->where('orderLabel', '.*')
-    ->middleware('auth');
 
 Route::middleware(['auth'])->prefix('messages')->group(function () {
     Route::post('/send', [MessageController::class, 'send'])->name('messages.send');

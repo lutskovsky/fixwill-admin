@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Comagic\ComagicService;
+use App\Services\Comagic\ComagicChatService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ class MessageController extends Controller
 {
     private $comagicService;
 
-    public function __construct(ComagicService $comagicService)
+    public function __construct(ComagicChatService $comagicService)
     {
         $this->comagicService = $comagicService;
     }

@@ -30,6 +30,10 @@ class OrderClientController extends Controller
     {
         $order = $this->remonline->getOrders(['id_labels' => [$orderLabel]]);
         $clientData = $order['data'][0]['client'];
+
+        if (!$clientData) {
+            return response("<h1>В заказе нет клиента!</h1>");
+        }
         return $this->show($clientData);
     }
 
@@ -105,11 +109,11 @@ class OrderClientController extends Controller
         return $this->createOrder($clientId);
     }
 
-    public function createOrder(mixed $clientId): mixed
+    public function createOrder(mixed $clientId, $orderType = 89790): mixed
     {
         $resp = $this->remonline->createOrder([
             'branch_id' => 50230,
-            'order_type' => 89790,
+            'order_type' => $orderType,
             'client_id' => $clientId
         ]);
 

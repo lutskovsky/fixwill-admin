@@ -35,8 +35,15 @@ return [
         ],
     ],
     'comagic' => [
+        'token' => env('COMAGIC_TOKEN'),
         'username' => env('COMAGIC_USERNAME', 'fixwill'),
         'password' => env('COMAGIC_PASSWORD', 'rasa1hague'),
+        'virtual_numbers' => [
+            'default' => env('COMAGIC_DEFAULT_VIRTUAL_NUMBER', '74954893455'),
+            'scenario' => env('COMAGIC_SCENARIO_VIRTUAL_NUMBER', '79053056181'),
+        ],
+        'fixcpa_scenario_id' => env('COMAGIC_FIXCPA_SCENARIO_ID', 545220),
+        'potential_call_scenario_id' => env('COMAGIC_POTENTIAL_CALL_SCENARIO_ID', 549800),
     ],
 
 ];

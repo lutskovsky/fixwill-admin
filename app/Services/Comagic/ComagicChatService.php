@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class ComagicService
+class ComagicChatService
 {
     private const BASE_URL = 'https://chat-integration-api-prod.uiscom.ru/v1/adapter';
     private const ACCOUNT_ID = 4308;
@@ -222,4 +222,6 @@ class ComagicService
             ->with('messages')
             ->get();
     }
+
+
 }

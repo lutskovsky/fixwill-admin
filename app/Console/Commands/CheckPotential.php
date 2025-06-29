@@ -2,10 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\EmployeeCallController;
 use App\Integrations\RemonlineApi;
 use App\Models\PotentialAlert;
+use App\Models\PotentialCall;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
 class CheckPotential extends Command
@@ -50,10 +55,31 @@ class CheckPotential extends Command
         foreach ($orders as $order) {
             $orderId = $order['id'];
             $this->info("$orderId {$order['created_at']} {$order['modified_at']}");
+
+
+            // Check for call
+            if (Carbon::createFromTimestamp($order['created_at'] / 1000)->lt(Carbon::now()->subMinutes(10))) {
+                $potentialCall = PotentialCall::find($orderId);
+
+                if (!$potentialCall ||
+                    ($potentialCall->latest_call && $potentialCall->latest_call->lt(Carbon::now()->subMinutes(10))) ||
+                    !$potentialCall->latest_call) {
+
+                    $phone = $order['client']['phone'][0];
+                    if ($phone) {
+                        //EmployeeCallController::executeScenarioCall($phone, config('comagic.potential_call_scenario_id'));
+
+                        PotentialCall::updateOrCreate(
+                            ['id' => $orderId],
+                            ['latest_call' => now()]
+                        );
+                    }
+                }
+            }
+
             if ($order['created_at'] != $order['modified_at']) {
                 continue;
             }
-            $this->info('Hit! Diff: ' . ($order['modified_at'] / 1000 - time()));
             $createdAt = $order['created_at'] / 1000;
             $now = time();
             $alert = PotentialAlert::find($orderId);
@@ -86,5 +112,8 @@ class CheckPotential extends Command
                 'text' => $msg,
                 'parse_mode' => 'html']);
         }
+
+        $currentPotentialOrderIds = array_column($orders, 'id');
+        PotentialCall::whereNotIn('id', $currentPotentialOrderIds)->delete();
     }
 }

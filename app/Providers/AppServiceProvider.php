@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Http\Controllers\Admin\UserCrudController;
 use App\Http\Requests\UserStoreCrudRequest;
 use App\Http\Requests\UserUpdateCrudRequest;
-use App\Services\Comagic\ComagicService;
+use App\Services\Comagic\ComagicChatService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 
@@ -16,8 +16,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(ComagicService::class, function ($app) {
-            return new ComagicService();
+        $this->app->singleton(ComagicChatService::class, function ($app) {
+            return new ComagicChatService();
         });
     }
 

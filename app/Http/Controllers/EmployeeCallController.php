@@ -122,10 +122,16 @@ class EmployeeCallController extends Controller
         return $result;
     }
 
-    public function scenarioCall(Request $request, $scenarioId = 545220)
+    public function scenarioCall(Request $request)
     {
         $number = $request->input('number');
+        $this->executeScenarioCall($number, config('comagic.fixcpa_scenario_id'));
 
+        return response('OK', 200);
+    }
+
+    public function executeScenarioCall($number, $scenarioId)
+    {
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
         $callParams = [
             'first_call' => 'employee',
@@ -139,7 +145,7 @@ class EmployeeCallController extends Controller
         Log::channel('comagic')->info($callParams);
         Log::channel('comagic')->info($result);
 
-        return response('OK', 200);
+        return $result;
 
     }
 }
