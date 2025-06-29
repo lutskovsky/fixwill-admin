@@ -212,7 +212,7 @@ class OrderClientController extends Controller
                 try {
                     $requestPhones[] = Crypt::decryptString($phone['encrypted']);
                 } catch (Exception $e) {
-                    Log::error("decrypt error. plain:". $phone['text'] . ", encrypted:" . $phone['encrypted']);
+                    Log::error($clientData['name'] . " / decrypt error. plain:". $phone['text'] . ", encrypted:" . $phone['encrypted']);
                 }
 
             } else {
