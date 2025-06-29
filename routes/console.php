@@ -10,5 +10,8 @@ Schedule::command('issues:escalate')
 Schedule::command('issues:escalate --postponed')
     ->dailyAt('21:00');
 
-Schedule::command('remonline:check-potential')
+Schedule::command('remonline:check-potential-alert')
     ->everyMinute();
+Schedule::command('remonline:potential-autocall')
+    ->everyMinute()
+->between('8:00', '23:00');

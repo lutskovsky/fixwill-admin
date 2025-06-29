@@ -125,7 +125,7 @@ class EmployeeCallController extends Controller
     public function scenarioCall(Request $request)
     {
         $number = $request->input('number');
-        $this->executeScenarioCall($number, config('comagic.fixcpa_scenario_id'));
+        $this->executeScenarioCall($number, config('services.comagic.fixcpa_scenario_id'));
 
         return response('OK', 200);
     }
