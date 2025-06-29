@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
+use Doctrine\DBAL\Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class OrderClientController extends Controller
@@ -207,7 +209,12 @@ class OrderClientController extends Controller
         $requestPhones = [];
         foreach ($clientData['phones'] as $phone) {
             if (str_contains($phone['text'], '*')) {
-                $requestPhones[] = Crypt::decryptString($phone['encrypted']);
+                try {
+                    $requestPhones[] = Crypt::decryptString($phone['encrypted']);
+                } catch (Exception $e) {
+                    Log::error("decrypt error. plain:". $phone['text'] . ", encrypted:" . $phone['encrypted']);
+                }
+
             } else {
                 $requestPhones[] = $phone['text'];
             }
