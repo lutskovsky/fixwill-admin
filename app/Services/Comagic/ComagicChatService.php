@@ -85,6 +85,11 @@ class ComagicChatService
             Log::error('Failed to send message: ' . $e->getMessage(), [
                 'phone' => $phone,
                 'type' => $type,
+                'account_id' => self::ACCOUNT_ID,
+                'channel_id' => $channelId,
+                'chat_id' => $chat->id,
+                'source' => 'operator',
+                'operator_id' => self::OPERATOR_ID,
                 'text' => $text,
             ]);
             throw $e;
