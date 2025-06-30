@@ -54,6 +54,9 @@ class PotentialAutoCall extends Command
 
         foreach ($orders as $order) {
             $orderId = $order['id'];
+
+            if ($orderId != 52309322) continue;
+
             $this->info("$orderId {$order['created_at']} {$order['modified_at']}");
 
             // Check for call
@@ -69,7 +72,7 @@ class PotentialAutoCall extends Command
 
                 $phone = $order['client']['phone'][0];
                 if ($phone) {
-                    //EmployeeCallController::executeScenarioCall($phone, config('services.comagic.potential_call_scenario_id'));
+                    EmployeeCallController::executeScenarioCall($phone, config('services.comagic.potential_call_scenario_id'));
 
                     PotentialCall::updateOrCreate(
                         ['id' => $orderId],
