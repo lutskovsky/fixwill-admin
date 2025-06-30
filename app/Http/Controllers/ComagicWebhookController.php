@@ -102,9 +102,7 @@ class ComagicWebhookController extends Controller
         }
     }
 
-    /**
-     * Existing notify method for call webhooks
-     */
+
     public function notify(Request $request)
     {
         $contactPhoneNumber = $request->query('contact_phone_number');
@@ -180,6 +178,8 @@ class ComagicWebhookController extends Controller
         if ($employee->chat_id) {
             $botService->sendMessage($employee->chat_id, $msg);
         }
+
+        $botService->sendMessage("-1004942029113", $msg. "Ответил " . $employee->name);
 
         return response('OK', 200);
     }

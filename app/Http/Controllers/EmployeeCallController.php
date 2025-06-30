@@ -40,18 +40,6 @@ class EmployeeCallController extends Controller
         if (empty($contactPhoneNumber)) {
             return response('Invalid parameters', 400);
         }
-
-//        // Search for the employee in the Employees table
-//        $employee = Employee::where('remonline_login', $remonlineLogin)->first();
-//
-//        if (!$employee) {
-//            return response('Employee not found', 404);
-//        }
-//
-//        $extension = $employee->internal_phone;
-
-//        $contactPhoneNumber = Crypt::decryptString($contactPhoneNumber);
-//        Log::channel('comagic')->info(print_r($contactPhoneNumber));
         $contactPhoneNumber = preg_replace('/\D/', '', $contactPhoneNumber);
 
         $client = new ComagicClient(env('COMAGIC_TOKEN'), new Client());
