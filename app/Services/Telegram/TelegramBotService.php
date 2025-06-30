@@ -3,6 +3,7 @@
 namespace App\Services\Telegram;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class TelegramBotService
 {
@@ -50,6 +51,11 @@ class TelegramBotService
         }
 
         $response = Http::post($url, $data);
+
+        if ($response->failed()) {
+            Log::info("Telegram Error: {$response->body()}");
+
+        }
 
         return $response->successful();
     }
