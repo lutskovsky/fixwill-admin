@@ -32,7 +32,7 @@ class PotentialAutoCall extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(EmployeeCallController $caller)
     {
         $remonline = new RemonlineApi();
 
@@ -72,7 +72,7 @@ class PotentialAutoCall extends Command
 
                 $phone = $order['client']['phone'][0];
                 if ($phone) {
-                    EmployeeCallController::executeScenarioCall($phone, config('services.comagic.potential_call_scenario_id'));
+                    $caller->executeScenarioCall($phone, config('services.comagic.potential_call_scenario_id'));
 
                     PotentialCall::updateOrCreate(
                         ['id' => $orderId],
