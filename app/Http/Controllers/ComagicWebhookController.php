@@ -179,7 +179,7 @@ class ComagicWebhookController extends Controller
             $botService->sendMessage($employee->chat_id, $msg);
         }
 
-        $botService->sendMessage("-1004942029113", $msg. "Ответил " . $employee->name);
+        $botService->sendMessage("-4942029113", $msg. "Ответил " . $employee->name);
 
         return response('OK', 200);
     }
