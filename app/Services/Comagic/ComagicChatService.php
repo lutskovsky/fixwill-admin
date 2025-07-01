@@ -18,7 +18,7 @@ class ComagicChatService
     private const ACCOUNT_ID = 4308;
     private const OPERATOR_ID = 9294361;
 
-    private $channelIds = [];
+    private array $channelIds = [];
 
     private $user;
 

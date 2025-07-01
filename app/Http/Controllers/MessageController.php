@@ -46,7 +46,7 @@ class MessageController extends Controller
                 'data' => $message,
             ]);
         } catch (Exception $e) {
-            Log::channel('comagic_chat')->error($e->getMessage());
+            report($e);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send message',
