@@ -10,11 +10,13 @@ use App\Models\Status;
 use App\Models\StatusChange;
 use App\Services\Telegram\TelegramBotService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class StatusChangeController extends Controller
 {
     public function store(Request $request)
     {
+        Log::info($request);
         $validated = $request->validate([
             'context.object_id' => 'required|integer',
             'metadata.new.id' => 'required|integer',
@@ -29,6 +31,7 @@ class StatusChangeController extends Controller
             'order_id' => $orderId,
         ]);
 
+        Log::info($orderId." validated");
         $rem = new RemonlineApi();
         $newData = $rem->getOrderById($orderId);
         $currentPickupDate = $newData['custom_fields']['f1482265'] ?? null;
