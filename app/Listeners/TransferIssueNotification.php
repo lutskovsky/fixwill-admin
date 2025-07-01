@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Status;
 use App\Models\TransferIssue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -36,6 +37,7 @@ class TransferIssueNotification
      */
     public function handle(StatusChanged $event): void
     {
+        Log::info("Status change! " . $event->statusChange->order_id);
         $oldStatus = $event->statusChange->old_status_id;
         $oldStatus = Status::where("status_id", $oldStatus)->first();
         $newStatus = $event->statusChange->new_status_id;
@@ -52,6 +54,7 @@ class TransferIssueNotification
         }
 
         $orderId = $event->statusChange->order_id;
+        Log::info("Transfer issue! " . $orderId);
 
         $order = $event->newData;
 
