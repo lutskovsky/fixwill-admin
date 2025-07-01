@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -45,6 +46,7 @@ class MessageController extends Controller
                 'data' => $message,
             ]);
         } catch (Exception $e) {
+            Log::channel('comagic_chat')->error($e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send message',

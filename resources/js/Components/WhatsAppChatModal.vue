@@ -220,7 +220,7 @@ export default {
                     newMessage.value = '';
                     scrollToBottom();
                 } else {
-                    alert('Ошибка отправки сообщения');
+                    alert('Ошибка отправки сообщения: ' + response.data.error );
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
