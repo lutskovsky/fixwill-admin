@@ -31,7 +31,6 @@ class StatusChangeController extends Controller
             'order_id' => $orderId,
         ]);
 
-        Log::info($orderId." validated");
         $rem = new RemonlineApi();
         $newData = $rem->getOrderById($orderId);
         $currentPickupDate = $newData['custom_fields']['f1482265'] ?? null;

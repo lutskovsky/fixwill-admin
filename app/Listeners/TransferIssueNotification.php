@@ -54,7 +54,6 @@ class TransferIssueNotification
         }
 
         $orderId = $event->statusChange->order_id;
-        Log::info("Transfer issue! " . $orderId);
 
         $order = $event->newData;
 
