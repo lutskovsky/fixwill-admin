@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Integrations\RemonlineApi;
 use App\Listeners\TransferIssueNotification;
+use App\Models\Channel;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Scenario;
@@ -85,10 +86,9 @@ class ComagicWebhookController extends Controller
                 'source' => $message->source
             ]);
 
-            // Notify operators if message is from visitor
-//            if ($data['source'] === 'visitor') {
-//                $this->notifyOperatorsAboutMessage($chat, $message);
-//            }
+            if ($data['source'] === 'visitor') {
+                $this->notifyOperatorsAboutMessage($chat, $message);
+            }
 
             return response()->json(['status' => 'ok']);
 
@@ -157,7 +157,7 @@ class ComagicWebhookController extends Controller
         $msg = "";
         foreach ($msgData as $clientId => $client) {
             $viewClientUrl = route('client.show', $clientId);
-            $msg .= "Клиент: <a href='$viewClientUrl'>${client['name']}</a>\n";
+            $msg .= "Клиент: <a href='$viewClientUrl'>{$client['name']}</a>\n";
 
             if (empty($client['orders'])) {
                 $msg .= "Заказов нет\n";
@@ -317,17 +317,28 @@ class ComagicWebhookController extends Controller
      */
     private function notifyOperatorsAboutMessage($chat, $message)
     {
-        // Update unread count in cache
-        $unreadKey = 'unread_messages_' . $chat->id;
-        Cache::increment($unreadKey);
+        $channelId = $chat->channel_id;
+        $channel = Channel::where('comagic_id', $channelId)->first();
+        $group = $channel->whatsappGroups()->first();
+        $tgChatId = $group->tg_chat_id;
 
-        Log::channel('comagic_chat')->info('New visitor message received', [
-            'chat_id' => $chat->id,
-            'phone' => $chat->visitor_phone,
-            'message_preview' => substr($message->text, 0, 50) . '...'
-        ]);
+        if (!$tgChatId) {
+            return;
+        }
 
-        // Optional: Send Telegram notification to operators
-        // $this->sendTelegramNotificationAboutMessage($chat, $message);
+        $clientId = $chat->client_id;
+
+        $rem = new RemonlineApi();
+        $clientData = $rem->getClientById($clientId);
+
+
+
+        $viewClientUrl = route('client.show', $clientId);
+        $msg = "<a href='$viewClientUrl'>{$clientData['name']}</a>\n\n" . $message->text;
+
+        $token = config('telegramBots.call_notifications');
+        $botService = new TelegramBotService($token);
+
+        $botService->sendMessage($tgChatId, $msg);
     }
 }

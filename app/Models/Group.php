@@ -16,6 +16,7 @@ class Group extends Model
         'name',
         'whatsapp_channel_id',
         'sms_channel_id',
+        'tg_chat_id',
     ];
 
     // Relationships

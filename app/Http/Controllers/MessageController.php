@@ -37,7 +37,8 @@ class MessageController extends Controller
             $message = $this->comagicService->sendMessage(
                 $phone,
                 $request->text,
-                $request->type
+                $request->clientId,
+                $request->type,
             );
 
             return response()->json([

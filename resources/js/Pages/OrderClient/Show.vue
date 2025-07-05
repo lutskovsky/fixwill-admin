@@ -293,6 +293,7 @@
             :is-open="whatsAppModalOpen"
             :phone="selectedPhone"
             :encrypted-phone="selectedEncryptedPhone"
+            :clientId="clientId"
             @close="whatsAppModalOpen = false"
         />
     </div>

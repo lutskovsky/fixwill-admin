@@ -41,7 +41,7 @@ class ComagicChatService
     /**
      * Send a message
      */
-    public function sendMessage($phone, $text, $type = 'whatsapp')
+    public function sendMessage($phone, $text, $clientId, $type = 'whatsapp')
     {
         try {
             // Validate type
@@ -50,7 +50,7 @@ class ComagicChatService
             }
 
             // Get or create chat
-            $chat = $this->getOrCreateChat($phone, $type);
+            $chat = $this->getOrCreateChat($phone, $type, $clientId);
 
             // Send message
             $channelId = $this->channelIds[$type];
@@ -86,8 +86,8 @@ class ComagicChatService
                 'phone' => $phone,
                 'type' => $type,
                 'account_id' => self::ACCOUNT_ID,
-                'channel_id' => $channelId,
-                'chat_id' => $chat->id,
+//                'channel_id' => $channelId,
+//                'chat_id' => $chat->id,
                 'source' => 'operator',
                 'operator_id' => self::OPERATOR_ID,
                 'text' => $text,
@@ -99,7 +99,7 @@ class ComagicChatService
     /**
      * Get or create chat
      */
-    private function getOrCreateChat($phone, $type)
+    private function getOrCreateChat($phone, $type, $clientId)
     {
         $channelId = $this->channelIds[$type];
         if (!$channelId) {
@@ -130,6 +130,7 @@ class ComagicChatService
             'id' => $response['chat_id'],
             'visitor_phone' => $response['visitor_phone'],
             'channel_id' => $channelId,
+            'client_id' => $clientId,
         ]);
 
         return $chat;

@@ -100,6 +100,11 @@ class GroupCrudController extends CrudController
                     return $query->where('type', 'sms')->get();
                 }),
             ],
+            [
+                'label'     => "ТГ чат",
+                'type'      => 'text',
+                'name'      => 'tg_chat_id',
+            ],
         ]);
 
         /**

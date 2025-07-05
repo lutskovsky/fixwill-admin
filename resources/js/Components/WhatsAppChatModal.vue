@@ -97,6 +97,10 @@ export default {
         encryptedPhone: {
             type: String,
             required: true
+        },
+        clientId: {
+            type: Number,
+            required: true
         }
     },
 
@@ -211,6 +215,7 @@ export default {
                     phone: props.phone,
                     encryptedPhone: props.encryptedPhone,
                     text: newMessage.value,
+                    clientId: props.clientId,
                     type: 'whatsapp'
                 });
 
@@ -224,7 +229,7 @@ export default {
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
-                alert('Ошибка отправки сообщения');
+                alert('Ошибка отправки сообщения ' + response.data.error );
             } finally {
                 sending.value = false;
             }
