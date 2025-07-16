@@ -334,7 +334,7 @@ class ComagicWebhookController extends Controller
         $viewClientUrl = route('client.show', $clientId);
         $msg = "<a href='$viewClientUrl'>{$clientData['name']}</a>\n\n" . $message->text;
 
-        $token = config('telegramBots.call_notifications');
+        $token = config('telegramBots.notifications');
         $botService = new TelegramBotService($token);
 
         $botService->sendMessage($tgChatId, $msg);
