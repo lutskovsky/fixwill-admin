@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class ComagicChatService
 {
     private const BASE_URL = 'https://chat-integration-api-prod.uiscom.ru/v1/adapter';
-    private const ACCOUNT_ID = 4308;
+    private const ACCOUNT_ID = 4647;
     private const OPERATOR_ID = 9294361;
 
     private array $channelIds = [];

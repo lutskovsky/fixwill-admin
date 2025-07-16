@@ -37,7 +37,6 @@ class TransferIssueNotification
      */
     public function handle(StatusChanged $event): void
     {
-        Log::info("Status change! " . $event->statusChange->order_id);
         $oldStatus = $event->statusChange->old_status_id;
         $oldStatus = Status::where("status_id", $oldStatus)->first();
         $newStatus = $event->statusChange->new_status_id;

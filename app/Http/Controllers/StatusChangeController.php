@@ -16,7 +16,6 @@ class StatusChangeController extends Controller
 {
     public function store(Request $request)
     {
-        Log::info($request);
         $validated = $request->validate([
             'context.object_id' => 'required|integer',
             'metadata.new.id' => 'required|integer',
