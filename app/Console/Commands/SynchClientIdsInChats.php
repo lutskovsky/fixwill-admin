@@ -29,6 +29,9 @@ class SynchClientIdsInChats extends Command
     {
 
         foreach (Chat::all() as $chat) {
+            if ($chat->client_id) {
+                continue;
+            }
             $this->info($chat->id);
             $response = $rem->getClients(['phones' => [$chat->visitor_phone]]);
             $clients = $response['data'];

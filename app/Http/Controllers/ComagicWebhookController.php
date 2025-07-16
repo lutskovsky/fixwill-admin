@@ -331,8 +331,6 @@ class ComagicWebhookController extends Controller
         $rem = new RemonlineApi();
         $clientData = $rem->getClientById($clientId);
 
-
-
         $viewClientUrl = route('client.show', $clientId);
         $msg = "<a href='$viewClientUrl'>{$clientData['name']}</a>\n\n" . $message->text;
 
