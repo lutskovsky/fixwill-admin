@@ -155,7 +155,7 @@ class RemonlineApi
     public function getClientById($clientId)
     {
         $apiCall = $this->apiCall('clients/' . $clientId);
-        return $apiCall['data'];
+        return $apiCall;
     }
 
     public function getOperations($data = [])
