@@ -29,8 +29,8 @@ class RemonlineApi
     public function __construct()
     {
         $this->api_key = config('remonline.api_key');
-        $this->client = new Client(['http_errors' => false]);
-        $this->getNewToken();
+        $this->client = new Client(['http_errors' => false,
+            'base_uri' => $this->api_url,]);
     }
 
     public function getNewToken()
@@ -56,19 +56,24 @@ class RemonlineApi
 
     private function apiCall($method, $data = [], $httpMethod = 'GET', $try = 1)
     {
-        $data['token'] = $this->token;
-        $url = urldecode($this->api_url . $method . '?' . $this->generateCorrectParams($data));
-        $response = $this->client->request($httpMethod, $url);
 
-        $body = json_decode($response->getBody(), true);
-        if ($body && $body['success']) {
-            return $body;
-        } else {
+        $response = $this->client->request(
+            $httpMethod,
+            $method,
+            [   'headers' => [ 'Authorization' => 'Bearer ' . $this->api_key ],
+                'query' => $data
+            ],
+        );
+
+        if ($response->getStatusCode() == 200) {
+            return json_decode($response->getBody(), true);
+        }
+        else {
             if ($try > 3) {
-                throw new Exception(json_encode($body['message']) . " while calling $url");
+                throw new Exception($response->getReasonPhrase() . " while calling $method");
             }
             sleep(1);
-            $data['token'] = $this->getNewToken();
+//            $data['token'] = $this->getNewToken();
             return $this->apiCall($method, $data, $httpMethod, $try + 1);
         }
     }
@@ -155,7 +160,7 @@ class RemonlineApi
     public function getClientById($clientId)
     {
         $apiCall = $this->apiCall('clients/' . $clientId);
-        return $apiCall['data'];
+        return $apiCall;
     }
 
     public function getOperations($data = [])
