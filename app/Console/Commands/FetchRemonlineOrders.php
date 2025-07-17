@@ -49,9 +49,15 @@ class FetchRemonlineOrders extends Command
             if ($order['status']['id'] == 435391) {
                 $direction = 'отвоз';
                 $courierName = $order['custom_fields'][self::COURIER_FIELD_OTVOZ] ?? '';
+                $date = ($order['client']['custom_fields']['f1569111'] ?? 'нет');
             } else {
                 $direction = 'привоз';
                 $courierName = $order['custom_fields'][self::COURIER_FIELD_PRIVOZ] ?? '';
+                $date = ($order['client']['custom_fields']['f1482265'] ?? 'нет');
+            }
+
+            if ($date != 'нет') {
+                $date = date('d.m.Y', $date / 1000);
             }
 
             $courier = Courier::where('name', $courierName)->first();
@@ -65,6 +71,7 @@ class FetchRemonlineOrders extends Command
                 ->where('order_id', $order['id'])
                 ->where('moved_on', false)
                 ->where('courier', $courierName)
+                ->where('date', $date)
                 ->first();
 
             if (!$existingTrip) {
@@ -75,6 +82,7 @@ class FetchRemonlineOrders extends Command
                     'status' => 'Назначен',
                     'direction' => $direction,
                     'courier' => $courierName,
+                    'date' => $date,
                     'order_id' => $order['id'],
                     'courier_id' => $courier->id ?? null,
                     'courier_type' => $order['custom_fields']['f1620346'] ?? '',
