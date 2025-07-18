@@ -46,9 +46,6 @@ class FetchRemonlineOrders extends Command
         }
 
         foreach ($orders as $order) {
-            if ($order['id'] != 50906446) {
-                continue;
-            }
 
             if ($order['status']['id'] == 435391) {
                 $direction = 'отвоз';
