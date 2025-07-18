@@ -62,6 +62,7 @@ class CourierTrip extends Model
         'result',
         'active',
         'moved_on',
+        'date'
     ];
 
     /**
