@@ -72,7 +72,7 @@ class FetchRemonlineOrders extends Command
                 ->where('order_id', $order['id'])
                 ->where('moved_on', false)
                 ->where('courier', $courierName)
-//                ->where('date', $date)
+                ->where('date', $date)
                 ->first();
 
             if (!$existingTrip) {
