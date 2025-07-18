@@ -160,15 +160,10 @@ class LogisticsBotController extends Controller
                     $this->sendMsg($e->getMessage());
                     return;
                 }
-                try {
-                    $address = $order['client']['address'];
-                } catch (Exception $e) {
-                    $address = "ОШИБКА";
-                    Log::error($e->getMessage() . ', line ' . $e->getLine() . " in LogisticsBot, order {$order['id']}");
-
-                }
 
                 $messageText .= "\nЗаказ {$trip->order_label} ({$trip->direction}) - {$trip->status}\n";
+
+                $address =  $order['client'] ? $order['client']['address'] : "В заказе нет клиента!";
                 $messageText .= "$address\n";
                 $messageText .= "Подробнее: /order_{$trip->order_id}\n";
 
@@ -283,7 +278,7 @@ class LogisticsBotController extends Controller
 
         $text .= "---\n";
 
-        try {
+        if ($order['client']) {
             $name = $order['client']['name'];
             $text .= "Клиент: {$name}\n";
             $text .= "Адрес: {$order['client']['address']}\n";
@@ -295,15 +290,18 @@ class LogisticsBotController extends Controller
             $text .= "Квартира: {$flat}\n";
             $metro = $order['client']['custom_fields']['f3452769'] ?? '';
             $text .= "Метро: {$metro}\n";
-            $equipment = $order['custom_fields']['f1070009'] ?? '';
-            $text .= "Оборудование: {$equipment}\n";
-            $brand = $order['custom_fields']['f1070012'] ?? '';
-            $text .= "Бренд: {$brand}\n";
-            $diagonal = $order['custom_fields']['f1536267'] ?? '';
-            $text .= "Диагональ: {$diagonal}\n";
-        } catch (Exception $e) {
-            Log::error($e->getMessage() . ', line ' . $e->getLine() . " in LogisticsBot, order {$order['id']}");
         }
+        else {
+            $text .= "В заказе нет клиента!\n";
+        }
+
+
+        $equipment = $order['custom_fields']['f1070009'] ?? '';
+        $text .= "Оборудование: {$equipment}\n";
+        $brand = $order['custom_fields']['f1070012'] ?? '';
+        $text .= "Бренд: {$brand}\n";
+        $diagonal = $order['custom_fields']['f1536267'] ?? '';
+        $text .= "Диагональ: {$diagonal}\n";
 
         if ($trip->direction == "привоз") {
             $fault = $order['custom_fields']['f1078980'] ?? '';
@@ -334,7 +332,7 @@ class LogisticsBotController extends Controller
 
         $inlineKeyboard = $this->getInlineKeyboard($trip);
 
-        if ($this->mode == 'courier') {
+        if ($this->mode == 'courier' && $order['client']) {
             $phones = array_map(
                 fn($phone) => [[
                     'text' => '📞 ' . substr($phone, 0, 7) . '****',
@@ -346,6 +344,7 @@ class LogisticsBotController extends Controller
 
         $replyMarkup = ['inline_keyboard' => $inlineKeyboard];
         $this->botService->sendMessage($this->chatId, $text, $replyMarkup);
+
     }
 
     /**
