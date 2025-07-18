@@ -46,6 +46,10 @@ class FetchRemonlineOrders extends Command
         }
 
         foreach ($orders as $order) {
+            if ($order['id'] != 50906446) {
+                continue;
+            }
+
             if ($order['status']['id'] == 435391) {
                 $direction = 'отвоз';
                 $courierName = $order['custom_fields'][self::COURIER_FIELD_OTVOZ] ?? '';
@@ -71,7 +75,7 @@ class FetchRemonlineOrders extends Command
                 ->where('order_id', $order['id'])
                 ->where('moved_on', false)
                 ->where('courier', $courierName)
-                ->where('date', $date)
+//                ->where('date', $date)
                 ->first();
 
             if (!$existingTrip) {
@@ -93,6 +97,12 @@ class FetchRemonlineOrders extends Command
                 if ($courier && $courier->chat_id) {
                     $bot = new LogisticsBotController($courier->chat_id);
                     $bot->showTripDetails($order['id'], true);
+                }
+            }
+            else {
+                if (!$existingTrip->date) {
+                    $existingTrip->date = $date;
+                    $existingTrip->save();
                 }
             }
         }

@@ -276,23 +276,27 @@ class LogisticsBotController extends Controller
 
         $text .= "---\n";
 
-        $name = $order['client']['name'] ?? ($order['client']['first_name'] . ' ' . $order['client']['last_name']);
-        $text .= "Клиент: {$name}\n";
-        $text .= "Адрес: {$order['client']['address']}\n";
-        $entrance = $order['client']['custom_fields']['f3532128'] ?? "";
-        $text .= "Подъезд: {$entrance}\n";
-        $floor = $order['client']['custom_fields']['f3532129'] ?? '';
-        $text .= "Этаж: {$floor}\n";
-        $flat = $order['client']['custom_fields']['f3532130'] ?? '';
-        $text .= "Квартира: {$flat}\n";
-        $metro = $order['client']['custom_fields']['f3452769'] ?? '';
-        $text .= "Метро: {$metro}\n";
-        $equipment = $order['custom_fields']['f1070009'] ?? '';
-        $text .= "Оборудование: {$equipment}\n";
-        $brand = $order['custom_fields']['f1070012'] ?? '';
-        $text .= "Бренд: {$brand}\n";
-        $diagonal = $order['custom_fields']['f1536267'] ?? '';
-        $text .= "Диагональ: {$diagonal}\n";
+        try {
+            $name = $order['client']['name'];
+            $text .= "Клиент: {$name}\n";
+            $text .= "Адрес: {$order['client']['address']}\n";
+            $entrance = $order['client']['custom_fields']['f3532128'] ?? "";
+            $text .= "Подъезд: {$entrance}\n";
+            $floor = $order['client']['custom_fields']['f3532129'] ?? '';
+            $text .= "Этаж: {$floor}\n";
+            $flat = $order['client']['custom_fields']['f3532130'] ?? '';
+            $text .= "Квартира: {$flat}\n";
+            $metro = $order['client']['custom_fields']['f3452769'] ?? '';
+            $text .= "Метро: {$metro}\n";
+            $equipment = $order['custom_fields']['f1070009'] ?? '';
+            $text .= "Оборудование: {$equipment}\n";
+            $brand = $order['custom_fields']['f1070012'] ?? '';
+            $text .= "Бренд: {$brand}\n";
+            $diagonal = $order['custom_fields']['f1536267'] ?? '';
+            $text .= "Диагональ: {$diagonal}\n";
+        } catch (Exception $e) {
+            Log::error($e->getMessage() . ', line ' . $e->getLine() . " in LogisticsBot, order {$order['id']}");
+        }
 
         if ($trip->direction == "привоз") {
             $fault = $order['custom_fields']['f1078980'] ?? '';
