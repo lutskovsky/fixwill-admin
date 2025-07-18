@@ -126,8 +126,10 @@ class ComagicChatService
         $response = $this->makeRequest('POST', '/chat', $chatData);
 
         // Save chat to database
-        $chat = Chat::create([
-            'id' => $response['chat_id'],
+        $chat = Chat::updateOrCreate([
+            'id' => $response['chat_id']
+            ],
+            [
             'visitor_phone' => $response['visitor_phone'],
             'channel_id' => $channelId,
             'client_id' => $clientId,
