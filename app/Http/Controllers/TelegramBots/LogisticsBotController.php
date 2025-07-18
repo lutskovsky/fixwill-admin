@@ -276,7 +276,8 @@ class LogisticsBotController extends Controller
 
         $text .= "---\n";
 
-        $text .= "Клиент: {$order['client']['name']}\n";
+        $name = $order['client']['name'] ?? ($order['client']['first_name'] . ' ' . $order['client']['last_name']);
+        $text .= "Клиент: {$name}\n";
         $text .= "Адрес: {$order['client']['address']}\n";
         $entrance = $order['client']['custom_fields']['f3532128'] ?? "";
         $text .= "Подъезд: {$entrance}\n";
