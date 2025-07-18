@@ -266,7 +266,7 @@ class LogisticsBotController extends Controller
 
         $date = $trip->direction == "привоз"
             ? ($order['custom_fields']['f1482265'] ?? 'нет')
-            : ($order['client']['custom_fields']['f1569111'] ?? 'нет');
+            : ($order['custom_fields']['f1569111'] ?? 'нет');
 
         if ($date != 'нет') {
             $date = date('d.m.Y', $date / 1000);

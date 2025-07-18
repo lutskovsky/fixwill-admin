@@ -53,11 +53,11 @@ class FetchRemonlineOrders extends Command
             if ($order['status']['id'] == 435391) {
                 $direction = 'отвоз';
                 $courierName = $order['custom_fields'][self::COURIER_FIELD_OTVOZ] ?? '';
-                $date = ($order['client']['custom_fields']['f1569111'] ?? 'нет');
+                $date = ($order['custom_fields']['f1569111'] ?? 'нет');
             } else {
                 $direction = 'привоз';
                 $courierName = $order['custom_fields'][self::COURIER_FIELD_PRIVOZ] ?? '';
-                $date = ($order['client']['custom_fields']['f1482265'] ?? 'нет');
+                $date = ($order['custom_fields']['f1482265'] ?? 'нет');
             }
 
             if ($date != 'нет') {
