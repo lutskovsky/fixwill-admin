@@ -21,7 +21,9 @@ class LogisticsBotController extends Controller
     protected string|null $mode = null;
     protected string|null $chatId = null;
 
-    public function __construct($chatId = null)
+    private RemonlineApi $remonline;
+
+    public function __construct(RemonlineApi $remonline, $chatId = null)
     {
         $this->chatId = $chatId;
 
@@ -29,6 +31,7 @@ class LogisticsBotController extends Controller
         $token = config('telegramBots.logistics');
         // Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
         $this->botService = new TelegramBotService($token);
+        $this->remonline = $remonline;
     }
 
     protected function getLabel($id, $label)
@@ -152,8 +155,7 @@ class LogisticsBotController extends Controller
             $messageText = "Ваши заказы:\n";
             foreach ($trips as $trip) {
                 try {
-                    $remonline = new RemonlineApi();
-                    $order = $remonline->getOrderById($trip->order_id);
+                    $order = $this->remonline->getOrderById($trip->order_id);
                 } catch (Exception $e) {
                     $this->sendMsg($e->getMessage());
                     return;
@@ -234,8 +236,7 @@ class LogisticsBotController extends Controller
         }
 
         try {
-            $remonline = new RemonlineApi();
-            $order = $remonline->getOrderById($orderId);
+            $order = $this->remonline->getOrderById($orderId);
         } catch (Exception $e) {
             $this->sendMsg($e->getMessage());
             return;
@@ -400,7 +401,7 @@ class LogisticsBotController extends Controller
     {
         $parts = explode(':', $data);
         if (count($parts) < 2) {
-            return;
+            return response('Bad Request', 400);
         }
 
         $phone = $parts[1];

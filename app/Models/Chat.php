@@ -16,6 +16,7 @@ class Chat extends Model
         'id',
         'visitor_phone',
         'channel_id',
+        'client_id'
     ];
 
     public function messages()

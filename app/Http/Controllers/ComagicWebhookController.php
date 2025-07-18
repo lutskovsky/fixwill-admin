@@ -22,6 +22,13 @@ class ComagicWebhookController extends Controller
 {
     const SITE_ORDER_FIELD = 'f4196099';
 
+    private RemonlineApi $remonline;
+
+    public function __construct(RemonlineApi $remonline)
+    {
+        $this->remonline = $remonline;
+    }
+
     /**
      * Main handler that routes to specific webhook handlers
      */
@@ -121,16 +128,15 @@ class ComagicWebhookController extends Controller
         $token = config('telegramBots.call_notifications');
         $botService = new TelegramBotService($token);
 
-        $rem = new RemonlineApi();
 
-        $response = $rem->getOrders(['client_phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
+        $response = $this->remonline->getOrders(['client_phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
 
         $orders = $response['data'];
 
         $msgData = [];
         if (empty($orders)) {
 
-            $response = $rem->getClients(['phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
+            $response = $this->remonline->getClients(['phones' => [$contactPhoneNumber], 'sort_dir' => 'desc']);
             $clients = $response['data'];
             if (empty($clients)) {
                 if ($employee->chat_id) {
@@ -193,8 +199,6 @@ class ComagicWebhookController extends Controller
     {
         Log::channel('create-order')->info($request->query());
 
-        $rem = new RemonlineApi();
-
         $number = $request->query('contact_phone_number');
         if (!$number) {
             return response('Phone number missing', 400);
@@ -213,7 +217,7 @@ class ComagicWebhookController extends Controller
             return response('Order was not created - excluded scenario', 200);
         }
 
-        $response = $rem->getOrders(['client_phones' => [$number], 'sort_dir' => 'desc']);
+        $response = $this->remonline->getOrders(['client_phones' => [$number], 'sort_dir' => 'desc']);
 
         foreach ($response['data'] as $order) {
             // Ищем текущий заказ по тому же сценарию
@@ -245,10 +249,10 @@ class ComagicWebhookController extends Controller
         }
 
         // Если вышли из цикла, значит надо создать новый заказ
-        $clients = $rem->getClients(['phones' => [$number]]);
+        $clients = $this->remonline->getClients(['phones' => [$number]]);
 
         if ($clients['count'] == 0) {
-            $response = $rem->createClient(['name' => "Новый клиент", 'phone' => [$number]]);
+            $response = $this->remonline->createClient(['name' => "Новый клиент", 'phone' => [$number]]);
             $clientId = $response['data']['id'];
 
             Log::channel('create-order')->info("Created client $clientId");
@@ -258,7 +262,6 @@ class ComagicWebhookController extends Controller
         }
 
         /** @var array $orderTypes */
-        /** @var array $remonlineCustomFields */
         $customFields = [
             5192512 => 'Москва',
             4196099 => $scenario
@@ -267,7 +270,7 @@ class ComagicWebhookController extends Controller
         if (mb_stripos($scenario, 'партнер') !== false) {
             $customFields[4214453] = $scenario;
         }
-        $resp = $rem->createOrder([
+        $resp = $this->remonline->createOrder([
             'branch_id' => 50230,
             'order_type' => 89790,
             'client_id' => $clientId,
@@ -328,11 +331,19 @@ class ComagicWebhookController extends Controller
 
         $clientId = $chat->client_id;
 
-        $rem = new RemonlineApi();
-        $clientData = $rem->getClientById($clientId);
+        $clientData = $this->remonline->getClientById($clientId);
 
         $viewClientUrl = route('client.show', $clientId);
-        $msg = "<a href='$viewClientUrl'>{$clientData['name']}</a>\n\n" . $message->text;
+        $msg = "Клиент: <a href='$viewClientUrl'>{$clientData['name']}</a>\n\n";
+
+        $orders = $this->remonline->getOrders(['clients_ids' => [$clientId], 'sort_dir' => 'desc'])['data'];
+        foreach ($orders as $order) {
+            $msg .= "<a href='https://web.remonline.app/orders/table/{$order['id']}'>{$order['id_label']}</a> {$order['status']['name']}\n";
+
+        }
+
+        $msg .= "\n";
+        $msg .= $message->text;
 
         $token = config('telegramBots.notifications');
         $botService = new TelegramBotService($token);

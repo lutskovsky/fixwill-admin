@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Http\Controllers\Admin\UserCrudController;
 use App\Http\Requests\UserStoreCrudRequest;
 use App\Http\Requests\UserUpdateCrudRequest;
+use App\Integrations\RemonlineApi;
 use App\Services\Comagic\ComagicChatService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
@@ -18,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(ComagicChatService::class, function ($app) {
             return new ComagicChatService();
+        });
+        $this->app->singleton(RemonlineApi::class, function ($app) {
+            return new RemonlineApi();
         });
     }
 
