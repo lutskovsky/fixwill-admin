@@ -158,7 +158,13 @@ class LogisticsBotController extends Controller
                     $this->sendMsg($e->getMessage());
                     return;
                 }
-                $address = $order['client']['address'];
+                try {
+                    $address = $order['client']['address'];
+                } catch (Exception $e) {
+                    $address = "ОШИБКА";
+                    Log::error($e->getMessage() . ', line ' . $e->getLine() . " in LogisticsBot, order {$order['id']}");
+
+                }
 
                 $messageText .= "\nЗаказ {$trip->order_label} ({$trip->direction}) - {$trip->status}\n";
                 $messageText .= "$address\n";
