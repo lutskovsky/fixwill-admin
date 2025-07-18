@@ -23,7 +23,7 @@ class LogisticsBotController extends Controller
 
     private RemonlineApi $remonline;
 
-    public function __construct(RemonlineApi $remonline, $chatId = null)
+    public function __construct($chatId = null)
     {
         $this->chatId = $chatId;
 
@@ -31,7 +31,7 @@ class LogisticsBotController extends Controller
         $token = config('telegramBots.logistics');
         // Or: $token = env('TELEGRAM_BOT_TOKEN_LOGISTICS');
         $this->botService = new TelegramBotService($token);
-        $this->remonline = $remonline;
+        $this->remonline = new RemonlineApi();
     }
 
     protected function getLabel($id, $label)
