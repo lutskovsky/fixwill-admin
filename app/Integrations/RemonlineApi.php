@@ -58,7 +58,7 @@ class RemonlineApi
     {
         $data['token'] = $this->token;
         $url = urldecode($this->api_url . $method . '?' . $this->generateCorrectParams($data));
-        $response = $this->client->request($httpMethod, $url);
+        $response = $this->client->request($httpMethod, $url, ['headers' => ['Authorization' => 'Bearer ' . $this->api_key]]);
 
         $body = json_decode($response->getBody(), true);
         if ($body && $body['success']) {

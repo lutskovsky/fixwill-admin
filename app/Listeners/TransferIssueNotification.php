@@ -284,7 +284,7 @@ class TransferIssueNotification
                 try {
                     $this->bot->deleteMessage(['chat_id' => $message['chat']['id'], 'message_id' => $message['message_id']]);
                 } catch (TelegramSDKException $e) {
-                    Log::error("Faile to delete " . json_encode($data));
+                    Log::error("Failed to delete " . json_encode($data));
                 }
             } else {
                 return;
