@@ -267,9 +267,9 @@ class ComagicWebhookController extends Controller
             4196099 => $scenario
         ];
 
-        if (mb_stripos($scenario, 'партнер') !== false) {
-            $customFields[4214453] = $scenario;
-        }
+//        if (mb_stripos($scenario, 'партнер') !== false) {
+//            $customFields[4214453] = $scenario;
+//        }
         $resp = $this->remonline->createOrder([
             'branch_id' => 50230,
             'order_type' => 89790,
