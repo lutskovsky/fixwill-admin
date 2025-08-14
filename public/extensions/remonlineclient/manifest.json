@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Remonline Client Data",
-    "version": "2.0",
+    "version": "2.1",
   "description": "Calls",
   "permissions": [
     "storage",
@@ -11,11 +11,11 @@
     "webNavigation"
   ],
   "host_permissions": [
-    "https://web.remonline.app/*"
+    "https://web.roapp.io/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://web.remonline.app/*"],
+      "matches": ["https://web.roapp.io/*"],
         "js": [
             "settings.js"
         ]
@@ -23,10 +23,10 @@
 
     {
         "matches": [
-            "https://web.remonline.app/*"
+            "https://web.roapp.io/*"
         ],
         "exclude_matches": [
-            "https://web.remonline.app/login"
+            "https://web.roapp.io/login"
         ],
         "js": [
             "content.js"
