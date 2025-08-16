@@ -72,7 +72,7 @@ class TransferIssueNotification
             $dateText = "$oldDate → $newDate";
         }
 
-        $link = "<a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a>";
+        $link = "<a href='https://web.roapp.io/orders/table/$orderId'>{$order['id_label']}</a>";
         $equipmentType = $order['custom_fields']['f1070009'] ?? 'не задано';
         $diag = $order['custom_fields']['f1536267'] ?? 'не задано';
         $brand = $order['custom_fields']['f1070012'] ?? 'не задано';

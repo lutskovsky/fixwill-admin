@@ -9,7 +9,7 @@ chrome.webRequest.onCompleted.addListener(
             console.log("ClientId saved:", clientId);
         }
     },
-    { urls: ["https://web.remonline.app/app/settings/get-client*"] }
+    { urls: ["https://web.roapp.io/app/settings/get-client*"] }
 );
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

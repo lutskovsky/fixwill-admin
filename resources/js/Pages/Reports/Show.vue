@@ -346,7 +346,7 @@ const columnDefs = ref([
         cellRenderer: params => {
             if (params.node.data) {
                 // Render the link only for non-grouped rows
-                return `<a href="https://web.remonline.app/orders/table/${params.node.data.id}" target="_blank">${params.value}</a>`;
+                return `<a href="https://web.roapp.io/orders/table/${params.node.data.id}" target="_blank">${params.value}</a>`;
             } else {
                 // Return the default value for grouped rows
                 return params.value || '';

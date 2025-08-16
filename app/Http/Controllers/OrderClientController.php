@@ -119,7 +119,7 @@ class OrderClientController extends Controller
             'client_id' => $clientId
         ]);
 
-        return Inertia::location('https://web.remonline.app/orders/table/' . $resp['data']['id']);
+        return Inertia::location('https://web.roapp.io/orders/table/' . $resp['data']['id']);
     }
 
 //    public function updateOrCreate(Request $request)
@@ -130,7 +130,7 @@ class OrderClientController extends Controller
 //            $resp = $this->remonline->createClient($remonlineClientRequestData);
 //            $clientId = $resp['data']['id'];
 //            $orderId = $this->createOrder($clientId);
-//            return Inertia::location('https://web.remonline.app/orders/table/' . $orderId);
+//            return Inertia::location('https://web.roapp.io/orders/table/' . $orderId);
 //        }
 //
 //

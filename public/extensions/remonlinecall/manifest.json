@@ -11,17 +11,17 @@
     "webNavigation"
   ],
   "host_permissions": [
-    "https://web.remonline.app/*"
+    "https://web.roapp.io/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://web.remonline.app/*"],
-      "exclude_matches": ["https://web.remonline.app/login"],
+      "matches": ["https://web.roapp.io/*"],
+      "exclude_matches": ["https://web.roapp.io/login"],
       "js": ["content.js"],
       "run_at": "document_end"
     },
     {
-      "matches": ["https://web.remonline.app/login"],
+      "matches": ["https://web.roapp.io/login"],
       "js": ["login.js"],
       "run_at": "document_end"
     }

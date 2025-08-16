@@ -72,7 +72,7 @@ class StatusChangeController extends Controller
         if (!isset($newData["custom_fields"]["f2129012"]) || !$newData["custom_fields"]["f2129012"]) {
             $token = config('telegramBots.notifications');
             $botService = new TelegramBotService($token);
-            $msg = "Заказ <a href='https://web.remonline.app/orders/table/$orderId'>{$newData['id_label']}</a> без оператора.";
+            $msg = "Заказ <a href='https://web.roapp.io/orders/table/$orderId'>{$newData['id_label']}</a> без оператора.";
             $botService->sendMessage('-1002373384758', $msg);
         }
         return response('OK', 200);

@@ -37,7 +37,7 @@ class LogisticsBotController extends Controller
     protected function getLabel($id, $label)
     {
         if ($this->mode == 'manager') {
-            return "<a href='https://web.remonline.app/orders/table/$id'>$label</a>";
+            return "<a href='https://web.roapp.io/orders/table/$id'>$label</a>";
         } else {
             return $label;
         }

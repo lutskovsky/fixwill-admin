@@ -69,13 +69,13 @@ class CheckPotentialAlert extends Command
             }
 
             if (($createdAt < $now - 10 * 60) && ($level < 3)) {
-                $msg = "🔥🔥🔥 <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> - 10 минут без обработки!!!";
+                $msg = "🔥🔥🔥 <a href='https://web.roapp.io/orders/table/$orderId'>{$order['id_label']}</a> - 10 минут без обработки!!!";
                 $level = 3;
             } elseif (($createdAt < $now - 5 * 60) && ($level < 2)) {
-                $msg = "🔴 <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> - 5 минут без обработки";
+                $msg = "🔴 <a href='https://web.roapp.io/orders/table/$orderId'>{$order['id_label']}</a> - 5 минут без обработки";
                 $level = 2;
             } elseif (($createdAt < $now - 1 * 60) && ($level < 1)) {
-                $msg = "🟡 <a href='https://web.remonline.app/orders/table/$orderId'>{$order['id_label']}</a> - 1 минута без обработки";
+                $msg = "🟡 <a href='https://web.roapp.io/orders/table/$orderId'>{$order['id_label']}</a> - 1 минута без обработки";
                 $level = 1;
             } else {
                 continue;

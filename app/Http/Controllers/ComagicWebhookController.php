@@ -172,7 +172,7 @@ class ComagicWebhookController extends Controller
                     $id = $order['id'];
                     $label = $order['id_label'];
                     $status = $order['status']['name'];
-                    $msg .= "<a href='https://web.remonline.app/orders/table/$id'>$label</a> - $status\n";
+                    $msg .= "<a href='https://web.roapp.io/orders/table/$id'>$label</a> - $status\n";
                 }
             }
 
@@ -338,7 +338,7 @@ class ComagicWebhookController extends Controller
 
         $orders = $this->remonline->getOrders(['clients_ids' => [$clientId], 'sort_dir' => 'desc'])['data'];
         foreach ($orders as $order) {
-            $msg .= "<a href='https://web.remonline.app/orders/table/{$order['id']}'>{$order['id_label']}</a> {$order['status']['name']}\n";
+            $msg .= "<a href='https://web.roapp.io/orders/table/{$order['id']}'>{$order['id_label']}</a> {$order['status']['name']}\n";
 
         }
 
